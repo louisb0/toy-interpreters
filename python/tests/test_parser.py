@@ -16,13 +16,16 @@ let foobar = 83812;"""
         parser = Parser(lexer)
 
         program = parser.parse_program()
+
         self._check_parser_errors(parser)
+        self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
 
-        if program == None:
-            self.fail("parse_program() returned null")
-
-        if len(program.statements) != 3:
-            self.fail(f"program.statements has length {len(program.statements)} != 3")
+        self.assertIsNotNone(program, "parse_program() returned null")
+        self.assertEqual(
+            len(program.statements),
+            3,
+            f"program.statements has length {len(program.statements)} != 3",
+        )
 
         tests = [
             {"expected_identifier": "x"},
@@ -64,13 +67,16 @@ return 123123;"""
         parser = Parser(lexer)
 
         program = parser.parse_program()
+
         self._check_parser_errors(parser)
+        self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
 
-        if program == None:
-            self.fail("parse_program() returned null")
-
-        if len(program.statements) != 3:
-            self.fail(f"program.statements has length {len(program.statements)} != 3")
+        self.assertIsNotNone(program, "parse_program() returned null")
+        self.assertEqual(
+            len(program.statements),
+            3,
+            f"program.statements has length {len(program.statements)} != 3",
+        )
 
         for statement in program.statements:
             self.assertIsInstance(
