@@ -38,14 +38,21 @@ class LetStatement(Statement):
     def token_literal(self) -> str:
         return self.token.literal
 
-    def __str__(self):
-        return f"LetStatement: {self.name.value}"
-
 
 class Identifier(Expression):
     def __init__(self, token: Token, literal: str):
         self.token = token
         self.value = literal
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+
+class ReturnStatement(Statement):
+    def __init__(self, token: Token):
+        self.token = token
+
+        self.return_value: Expression = None
 
     def token_literal(self) -> str:
         return self.token.literal

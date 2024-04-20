@@ -42,7 +42,7 @@ let foobar = 83812;"""
         self.assertIsInstance(
             statement,
             ast.LetStatement,
-            f"statement is {type(statement).__name__}, expected LetStatement.",
+            f"statement is {type(statement).__name__}, expected LetStatement",
         )
         self.assertEqual(
             statement.name.value,
@@ -55,8 +55,38 @@ let foobar = 83812;"""
             f"statement.name.token_literal() is {statement.name.token_literal()}, expected '{expected_identifier}'",
         )
 
+    def test_return_statements(self):
+        input = """return 5;
+return 10;
+return 123123;"""
+
+        lexer = Lexer(input)
+        parser = Parser(lexer)
+
+        program = parser.parse_program()
+        self._check_parser_errors(parser)
+
+        if program == None:
+            self.fail("parse_program() returned null")
+
+        if len(program.statements) != 3:
+            self.fail(f"program.statements has length {len(program.statements)} != 3")
+
+        for statement in program.statements:
+            self.assertIsInstance(
+                statement,
+                ast.ReturnStatement,
+                f"statement is {type(statement).__name__}, expected ReturnStatement",
+            )
+
+            self.assertEqual(
+                statement.token_literal(),
+                "return",
+                f"statement.token_literal() is {statement.token_literal()}, expected 'return'",
+            )
+
     def _check_parser_errors(self, parser: Parser):
         if len(parser.errors) == 0:
-            return 
+            return
 
         self.fail(f"parser errors: {parser.errors}")

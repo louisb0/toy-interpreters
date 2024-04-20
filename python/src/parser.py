@@ -32,10 +32,12 @@ class Parser:
         match self.current_token.token_type:
             case Token.LET:
                 return self._parse_let_statement()
+            case Token.RETURN:
+                return self._parse_return_statement()
             case _:
                 return None
 
-    def _parse_let_statement(self) -> ast.LetStatement:
+    def _parse_let_statement(self) -> ast.LetStatement | None:
         statement = ast.LetStatement(self.current_token)
 
         if not self._expect_peek(Token.IDENT):
@@ -45,6 +47,18 @@ class Parser:
 
         if not self._expect_peek(Token.ASSIGN):
             return None
+
+        # TODO: Expression parsing. Currently just parsing the token
+        # name, need to parse the expression to get the value.
+        while self.current_token.token_type != Token.SEMICOLON:
+            self._next_token()
+
+        return statement
+
+    def _parse_return_statement(self) -> ast.ReturnStatement | None:
+        statement = ast.ReturnStatement(self.current_token)
+
+        self._next_token()
 
         # TODO: Expression parsing. Currently just parsing the token
         # name, need to parse the expression to get the value.
