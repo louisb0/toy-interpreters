@@ -56,7 +56,6 @@ class Token:
         return mapped_value if mapped_value else Token.IDENT
 
     def __eq__(self, value: "Token"):
-        print((self.literal, value.literal))
         return (self.token_type == value.token_type) and (self.literal == value.literal)
 
     def __str__(self):
