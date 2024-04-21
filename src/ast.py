@@ -43,7 +43,7 @@ class LetStatement(Statement):
 
     def token_literal(self) -> str:
         return self.token.literal
-    
+
     def __str__(self):
         return f"{self.token_literal()} {str(self.name)} = {str(self.value) if self.value else ''};"
 
@@ -55,10 +55,9 @@ class Identifier(Expression):
 
     def token_literal(self) -> str:
         return self.token.literal
-    
+
     def __str__(self):
         return self.value
-
 
 
 class ReturnStatement(Statement):
@@ -69,7 +68,7 @@ class ReturnStatement(Statement):
 
     def token_literal(self) -> str:
         return self.token.literal
-    
+
     def __str__(self):
         return f"{self.token_literal()} {str(self.return_value) if self.return_value else ''};"
 
@@ -85,6 +84,19 @@ class ExpressionStatement(Statement):
 
     def token_literal(self) -> str:
         return self.token.literal
-    
+
     def __str__(self):
         return str(self.expression) if self.expression else ""
+
+
+class IntegerLiteral(Expression):
+    def __init__(self, token: Token):
+        self.token = token
+
+        self.value: int = None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self):
+        return self.token_literal()

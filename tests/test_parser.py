@@ -126,3 +126,43 @@ return 123123;"""
             "foobar",
             f"indentifier.token_literal() was {identifier.token_literal()}, expected 'foobar'",
         )
+
+    def test_integer_literal_expression(self):
+        input = "5;"
+
+        lexer = Lexer(input)
+        parser = Parser(lexer)
+
+        program = parser.parse_program()
+
+        self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
+        self.assertIsNotNone(program, "parse_program() returned null")
+        self.assertEqual(
+            len(program.statements),
+            1,
+            f"program.statements has length {len(program.statements)} != 1",
+        )
+
+        statement = program.statements[0]
+        self.assertIsInstance(
+            statement,
+            ast.ExpressionStatement,
+            f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
+        )
+        self.assertIsInstance(
+            statement.expression,
+            ast.IntegerLiteral,
+            f"statement.expression is {type(statement.expression).__name__}, expected 'ast.IntegerLiteral'",
+        )
+
+        integer: ast.IntegerLiteral = statement.expression
+        self.assertEqual(
+            integer.value,
+            5,
+            f"integer.value was {integer.value}, expected '5'",
+        )
+        self.assertEqual(
+            integer.token_literal(),
+            "5",
+            f"integer.token_literal() was {integer.token_literal()}, expected '5'",
+        )

@@ -31,6 +31,7 @@ class Parser:
         # TODO: Typing
         self.prefix_parse_functions: dict = {}
         self._register_prefix(Token.IDENT, self._parse_identifier)
+        self._register_prefix(Token.INT, self._parse_integer_literal)
 
         self.infix_parse_functions: dict = {}
 
@@ -105,6 +106,20 @@ class Parser:
 
     def _parse_identifier(self) -> ast.Expression:
         return ast.Identifier(self.current_token, self.current_token.literal)
+
+    def _parse_integer_literal(self) -> ast.IntegerLiteral | None:
+        literal = ast.IntegerLiteral(self.current_token)
+
+        try:
+            parsed_value = int(self.current_token.literal)
+        except ValueError:
+            self.errors.append(
+                f"could not parse {self.current_token.literal} as integer"
+            )
+            return None
+
+        literal.value = parsed_value
+        return literal
 
     def _register_prefix(self, token_type: str, prefix_parse_function):
         self.prefix_parse_functions[token_type] = prefix_parse_function
