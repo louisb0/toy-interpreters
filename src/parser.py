@@ -1,7 +1,19 @@
+from enum import Enum, auto
+
 from src.lexer import Lexer
 from src.token import Token
 
 import src.ast as ast
+
+
+class Precedence(Enum):
+    LOWEST = auto()
+    EQUALS = auto()  # ==
+    LESSGREATER = auto()  # > or <
+    SUM = auto()  # +
+    PRODUCT = auto()  # *
+    PREFIX = auto()  # -X or !X
+    CALL = auto()  # myFunction(X)
 
 
 class Parser:
@@ -15,6 +27,12 @@ class Parser:
 
         self._next_token()
         self._next_token()
+
+        # TODO: Typing
+        self.prefix_parse_functions: dict = {}
+        self._register_prefix(Token.IDENT, self._parse_identifier)
+
+        self.infix_parse_functions: dict = {}
 
     def parse_program(self) -> ast.Program:
         program = ast.Program()
@@ -35,7 +53,7 @@ class Parser:
             case Token.RETURN:
                 return self._parse_return_statement()
             case _:
-                return None
+                return self._parse_expression_statement()
 
     def _parse_let_statement(self) -> ast.LetStatement | None:
         statement = ast.LetStatement(self.current_token)
@@ -66,6 +84,33 @@ class Parser:
             self._next_token()
 
         return statement
+
+    def _parse_expression_statement(self) -> ast.ExpressionStatement:
+        statement = ast.ExpressionStatement(self.current_token)
+
+        statement.expression = self._parse_expression(Precedence.LOWEST)
+
+        if self.peak_token.token_type == Token.SEMICOLON:
+            self._next_token()
+
+        return statement
+
+    def _parse_expression(self, precedence: Precedence) -> ast.Expression | None:
+        prefix = self.prefix_parse_functions[self.current_token.token_type]
+        if prefix is None:
+            return None
+
+        left_expression = prefix()
+        return left_expression
+
+    def _parse_identifier(self) -> ast.Expression:
+        return ast.Identifier(self.current_token, self.current_token.literal)
+
+    def _register_prefix(self, token_type: str, prefix_parse_function):
+        self.prefix_parse_functions[token_type] = prefix_parse_function
+
+    def _register_infix(self, token_type: str, infix_parse_function):
+        self.infix_parse_functions[token_type] = infix_parse_function
 
     def _expect_peek(self, expected: str) -> bool:
         if self.peak_token.token_type == expected:

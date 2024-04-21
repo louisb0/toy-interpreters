@@ -27,6 +27,12 @@ class Program(Node):
         else:
             return ""
 
+    def __str__(self):
+        res = ""
+        for statement in self.statements:
+            res += f"{str(statement)}\n"
+        return res
+
 
 class LetStatement(Statement):
     def __init__(self, token: Token):
@@ -37,6 +43,9 @@ class LetStatement(Statement):
 
     def token_literal(self) -> str:
         return self.token.literal
+    
+    def __str__(self):
+        return f"{self.token_literal()} {str(self.name)} = {str(self.value) if self.value else ''};"
 
 
 class Identifier(Expression):
@@ -46,6 +55,10 @@ class Identifier(Expression):
 
     def token_literal(self) -> str:
         return self.token.literal
+    
+    def __str__(self):
+        return self.value
+
 
 
 class ReturnStatement(Statement):
@@ -56,3 +69,22 @@ class ReturnStatement(Statement):
 
     def token_literal(self) -> str:
         return self.token.literal
+    
+    def __str__(self):
+        return f"{self.token_literal()} {str(self.return_value) if self.return_value else ''};"
+
+
+class ExpressionStatement(Statement):
+    """Since the Program node contains only statements, we must wrap
+    expressions in statements to have `5+5` be a valid program."""
+
+    def __init__(self, token: Token):
+        self.token = token
+
+        self.expression: Expression = None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+    
+    def __str__(self):
+        return str(self.expression) if self.expression else ""

@@ -17,9 +17,7 @@ let foobar = 83812;"""
 
         program = parser.parse_program()
 
-        self._check_parser_errors(parser)
         self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
-
         self.assertIsNotNone(program, "parse_program() returned null")
         self.assertEqual(
             len(program.statements),
@@ -68,9 +66,7 @@ return 123123;"""
 
         program = parser.parse_program()
 
-        self._check_parser_errors(parser)
         self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
-
         self.assertIsNotNone(program, "parse_program() returned null")
         self.assertEqual(
             len(program.statements),
@@ -91,8 +87,42 @@ return 123123;"""
                 f"statement.token_literal() is {statement.token_literal()}, expected 'return'",
             )
 
-    def _check_parser_errors(self, parser: Parser):
-        if len(parser.errors) == 0:
-            return
+    def test_identifier_expression(self):
+        input = "foobar;"
 
-        self.fail(f"parser errors: {parser.errors}")
+        lexer = Lexer(input)
+        parser = Parser(lexer)
+
+        program = parser.parse_program()
+
+        self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
+        self.assertIsNotNone(program, "parse_program() returned null")
+        self.assertEqual(
+            len(program.statements),
+            1,
+            f"program.statements has length {len(program.statements)} != 1",
+        )
+
+        statement = program.statements[0]
+        self.assertIsInstance(
+            statement,
+            ast.ExpressionStatement,
+            f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
+        )
+        self.assertIsInstance(
+            statement.expression,
+            ast.Identifier,
+            f"statement.expression is {type(statement.expression).__name__}, expected 'ast.Identifier'",
+        )
+
+        identifier: ast.Identifier = statement.expression
+        self.assertEqual(
+            identifier.value,
+            "foobar",
+            f"indentifier.value was {identifier.value}, expected 'foobar'",
+        )
+        self.assertEqual(
+            identifier.token_literal(),
+            "foobar",
+            f"indentifier.token_literal() was {identifier.token_literal()}, expected 'foobar'",
+        )
