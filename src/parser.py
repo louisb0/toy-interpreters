@@ -32,6 +32,8 @@ class Parser:
         self.prefix_parse_functions: dict = {}
         self._register_prefix(Token.IDENT, self._parse_identifier)
         self._register_prefix(Token.INT, self._parse_integer_literal)
+        self._register_prefix(Token.BANG, self._parse_prefix_expression)
+        self._register_prefix(Token.MINUS, self._parse_prefix_expression)
 
         self.infix_parse_functions: dict = {}
 
@@ -97,12 +99,25 @@ class Parser:
         return statement
 
     def _parse_expression(self, precedence: Precedence) -> ast.Expression | None:
-        prefix = self.prefix_parse_functions[self.current_token.token_type]
+        prefix = self.prefix_parse_functions.get(self.current_token.token_type)
         if prefix is None:
+            self.errors.append(
+                f"no prefix parse function for {self.current_token.token_type} found"
+            )
             return None
 
         left_expression = prefix()
         return left_expression
+
+    def _parse_prefix_expression(self):
+        expression = ast.PrefixExpression(
+            self.current_token, self.current_token.literal
+        )
+
+        self._next_token()
+
+        expression.right = self._parse_expression(Precedence.PREFIX)
+        return expression
 
     def _parse_identifier(self) -> ast.Expression:
         return ast.Identifier(self.current_token, self.current_token.literal)

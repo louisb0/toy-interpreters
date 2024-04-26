@@ -149,20 +149,65 @@ return 123123;"""
             ast.ExpressionStatement,
             f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
         )
+
+        self._test_integer_literal(statement.expression, 5)
+
+    def _test_integer_literal(self, expression: ast.Expression, expected: int):
         self.assertIsInstance(
-            statement.expression,
+            expression,
             ast.IntegerLiteral,
-            f"statement.expression is {type(statement.expression).__name__}, expected 'ast.IntegerLiteral'",
+            f"statement.expression is {type(expression).__name__}, expected 'ast.IntegerLiteral'",
         )
 
-        integer: ast.IntegerLiteral = statement.expression
+        integer: ast.IntegerLiteral = expression
         self.assertEqual(
             integer.value,
-            5,
-            f"integer.value was {integer.value}, expected '5'",
+            expected,
+            f"integer.value was {integer.value}, expected '{expected}'",
         )
         self.assertEqual(
             integer.token_literal(),
-            "5",
-            f"integer.token_literal() was {integer.token_literal()}, expected '5'",
+            str(expected),
+            f"integer.token_literal() was {integer.token_literal()}, expected '{expected}'",
         )
+
+    def test_prefix_expression(self):
+        prefix_tests = [
+            {"input": "!5", "operator": "!", "integer_value": 5},
+            {"input": "-15", "operator": "-", "integer_value": 15},
+        ]
+
+        for test in prefix_tests:
+            lexer = Lexer(test["input"])
+            parser = Parser(lexer)
+            program = parser.parse_program()
+
+            self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
+            self.assertIsNotNone(program, "parse_program() returned null")
+            self.assertEqual(
+                len(program.statements),
+                1,
+                f"program.statements has length {len(program.statements)} != 1",
+            )
+
+            statement = program.statements[0]
+            self.assertIsInstance(
+                statement,
+                ast.ExpressionStatement,
+                f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
+            )
+            self.assertIsInstance(
+                statement.expression,
+                ast.PrefixExpression,
+                f"statement.expression is {type(statement.expression).__name__}, expected 'ast.PrefixExpresion'",
+            )
+
+            self.assertEqual(
+                statement.expression.operator,
+                test["operator"],
+                f"statement.expression.operator is {statement.expression.operator}, expected '{test['operator']}'",
+            )
+
+            self._test_integer_literal(
+                statement.expression.right, test["integer_value"]
+            )
