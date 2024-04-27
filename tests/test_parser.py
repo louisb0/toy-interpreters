@@ -211,3 +211,50 @@ return 123123;"""
             self._test_integer_literal(
                 statement.expression.right, test["integer_value"]
             )
+
+    def test_infix_expression(self):
+        infix_tests = [
+            {"input": "5 + 5;", "left_value": 5, "operator": "+", "right_value": 5},
+            {"input": "5 - 5;", "left_value": 5, "operator": "-", "right_value": 5},
+            {"input": "5 * 5;", "left_value": 5, "operator": "*", "right_value": 5},
+            {"input": "5 / 5;", "left_value": 5, "operator": "/", "right_value": 5},
+            {"input": "5 > 5;", "left_value": 5, "operator": ">", "right_value": 5},
+            {"input": "5 < 5;", "left_value": 5, "operator": "<", "right_value": 5},
+            {"input": "5 == 5;", "left_value": 5, "operator": "==", "right_value": 5},
+            {"input": "5 != 5;", "left_value": 5, "operator": "!=", "right_value": 5},
+        ]
+
+        for test in infix_tests:
+            lexer = Lexer(test["input"])
+            parser = Parser(lexer)
+            program = parser.parse_program()
+
+            self.assertEqual(len(parser.errors), 0, f"parser errors: {parser.errors}")
+            self.assertIsNotNone(program, "parse_program() returned null")
+            self.assertEqual(
+                len(program.statements),
+                1,
+                f"program.statements has length {len(program.statements)} != 1",
+            )
+
+            statement = program.statements[0]
+            self.assertIsInstance(
+                statement,
+                ast.ExpressionStatement,
+                f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
+            )
+            self.assertIsInstance(
+                statement.expression,
+                ast.InfixExpression,
+                f"statement.expression is {type(statement.expression).__name__}, expected 'ast.InfixExpresion'",
+            )
+
+            self._test_integer_literal(statement.expression.left, test["left_value"])
+
+            self.assertEqual(
+                statement.expression.operator,
+                test["operator"],
+                f"statement.expression.operator is {statement.expression.operator}, expected '{test['operator']}'",
+            )
+
+            self._test_integer_literal(statement.expression.right, test["right_value"])

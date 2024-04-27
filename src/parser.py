@@ -36,6 +36,25 @@ class Parser:
         self._register_prefix(Token.MINUS, self._parse_prefix_expression)
 
         self.infix_parse_functions: dict = {}
+        self._register_infix(Token.PLUS, self._parse_infix_expression)
+        self._register_infix(Token.MINUS, self._parse_infix_expression)
+        self._register_infix(Token.SLASH, self._parse_infix_expression)
+        self._register_infix(Token.ASTERISK, self._parse_infix_expression)
+        self._register_infix(Token.EQ, self._parse_infix_expression)
+        self._register_infix(Token.NOT_EQ, self._parse_infix_expression)
+        self._register_infix(Token.LT, self._parse_infix_expression)
+        self._register_infix(Token.GT, self._parse_infix_expression)
+
+        self.precedences: dict[str, Precedence] = {
+            Token.EQ: Precedence.EQUALS,
+            Token.NOT_EQ: Precedence.EQUALS,
+            Token.LT: Precedence.LESSGREATER,
+            Token.GT: Precedence.LESSGREATER,
+            Token.PLUS: Precedence.SUM,
+            Token.MINUS: Precedence.SUM,
+            Token.SLASH: Precedence.PRODUCT,
+            Token.ASTERISK: Precedence.PRODUCT,
+        }
 
     def parse_program(self) -> ast.Program:
         program = ast.Program()
@@ -107,9 +126,22 @@ class Parser:
             return None
 
         left_expression = prefix()
+
+        while (
+            self.peak_token.token_type != Token.SEMICOLON
+            and precedence.value
+            < self.precedences.get(self.peak_token.token_type, Precedence.LOWEST).value
+        ):
+            infix = self.infix_parse_functions.get(self.peak_token.token_type)
+            if infix == None:
+                return left_expression
+
+            self._next_token()
+            left_expression = infix(left_expression)
+
         return left_expression
 
-    def _parse_prefix_expression(self):
+    def _parse_prefix_expression(self) -> ast.Expression:
         expression = ast.PrefixExpression(
             self.current_token, self.current_token.literal
         )
@@ -117,6 +149,19 @@ class Parser:
         self._next_token()
 
         expression.right = self._parse_expression(Precedence.PREFIX)
+        return expression
+
+    def _parse_infix_expression(self, left: ast.Expression) -> ast.Expression | None:
+        expression = ast.InfixExpression(
+            self.current_token, self.current_token.literal, left
+        )
+
+        precedence = self.precedences.get(
+            self.current_token.token_type, Precedence.LOWEST
+        )
+        self._next_token()
+        expression.right = self._parse_expression(precedence)
+
         return expression
 
     def _parse_identifier(self) -> ast.Expression:
