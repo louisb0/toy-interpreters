@@ -30,7 +30,7 @@ class Program(Node):
     def __str__(self):
         res = ""
         for statement in self.statements:
-            res += f"{str(statement)}\n"
+            res += f"{str(statement)}"
         return res
 
 
@@ -110,7 +110,7 @@ class PrefixExpression(Expression):
         self.right: Expression = None
 
     def token_literal(self) -> str:
-        return self.token.literal()
+        return self.token.literal
 
     def __str__(self):
         return f"({self.operator}{self.right})"
@@ -125,7 +125,19 @@ class InfixExpression(Expression):
         self.right: Expression = None
 
     def token_literal(self) -> str:
-        return self.token.literal()
+        return self.token.literal
 
     def __str__(self):
         return f"({self.left} {self.operator} {self.right})"
+
+
+class Boolean(Expression):
+    def __init__(self, token: Token, value: bool):
+        self.token = token
+        self.value = value
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self):
+        return self.token.literal

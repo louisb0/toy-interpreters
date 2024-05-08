@@ -34,6 +34,8 @@ class Parser:
         self._register_prefix(Token.INT, self._parse_integer_literal)
         self._register_prefix(Token.BANG, self._parse_prefix_expression)
         self._register_prefix(Token.MINUS, self._parse_prefix_expression)
+        self._register_prefix(Token.TRUE, self._parse_boolean)
+        self._register_prefix(Token.FALSE, self._parse_boolean)
 
         self.infix_parse_functions: dict = {}
         self._register_infix(Token.PLUS, self._parse_infix_expression)
@@ -180,6 +182,11 @@ class Parser:
 
         literal.value = parsed_value
         return literal
+
+    def _parse_boolean(self) -> ast.Expression:
+        return ast.Boolean(
+            self.current_token, self.current_token.token_type == Token.TRUE
+        )
 
     def _register_prefix(self, token_type: str, prefix_parse_function):
         self.prefix_parse_functions[token_type] = prefix_parse_function
