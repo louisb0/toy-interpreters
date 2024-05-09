@@ -216,6 +216,11 @@ return 123123;"""
             {"input": "false", "expected_output": "false"},
             {"input": "3 > 5 == false", "expected_output": "((3 > 5) == false)"},
             {"input": "3 < 5 == true", "expected_output": "((3 < 5) == true)"},
+            {"input": "1 + (2 + 3) + 4", "expected_output": "((1 + (2 + 3)) + 4)"},
+            {"input": "(5 + 5) * 2", "expected_output": "((5 + 5) * 2)"},
+            {"input": "2 / (5 + 5)", "expected_output": "(2 / (5 + 5))"},
+            {"input": "-(5 + 5)", "expected_output": "(-(5 + 5))"},
+            {"input": "!(true == true)", "expected_output": "(!(true == true))"},
         ]
 
         for test in tests:

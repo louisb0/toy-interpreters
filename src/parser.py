@@ -36,6 +36,7 @@ class Parser:
         self._register_prefix(Token.MINUS, self._parse_prefix_expression)
         self._register_prefix(Token.TRUE, self._parse_boolean)
         self._register_prefix(Token.FALSE, self._parse_boolean)
+        self._register_prefix(Token.LPAREN, self._parse_grouped_expression)
 
         self.infix_parse_functions: dict = {}
         self._register_infix(Token.PLUS, self._parse_infix_expression)
@@ -163,6 +164,15 @@ class Parser:
         )
         self._next_token()
         expression.right = self._parse_expression(precedence)
+
+        return expression
+
+    def _parse_grouped_expression(self):
+        self._next_token()
+
+        expression = self._parse_expression(Precedence.LOWEST)
+        if not self._expect_peek(Token.RPAREN):
+            return None
 
         return expression
 
