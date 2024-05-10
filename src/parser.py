@@ -37,6 +37,7 @@ class Parser:
         self._register_prefix(Token.TRUE, self._parse_boolean)
         self._register_prefix(Token.FALSE, self._parse_boolean)
         self._register_prefix(Token.LPAREN, self._parse_grouped_expression)
+        self._register_prefix(Token.IF, self._parse_if_expression)
 
         self.infix_parse_functions: dict = {}
         self._register_infix(Token.PLUS, self._parse_infix_expression)
@@ -175,6 +176,48 @@ class Parser:
             return None
 
         return expression
+
+    def _parse_if_expression(self):
+        expression = ast.IfExpression(self.current_token)
+
+        if not self._expect_peek(self.current_token.LPAREN):
+            return None
+
+        self._next_token()
+
+        expression.condition = self._parse_expression(Precedence.LOWEST)
+
+        if not self._expect_peek(Token.RPAREN):
+            return None
+        if not self._expect_peek(Token.LBRACE):
+            return None
+
+        expression.consequence = self._parse_block_statement()
+
+        if self.peak_token.token_type == Token.ELSE:
+            self._next_token()
+
+            if not self._expect_peek(Token.LBRACE):
+                return None
+
+            expression.alternative = self._parse_block_statement()
+
+        return expression
+
+    def _parse_block_statement(self):
+        block = ast.BlockStatement(self.current_token)
+        self._next_token()
+
+        while (
+            self.current_token.token_type != Token.RBRACE
+            and self.current_token.token_type != Token.EOF
+        ):
+            statement = self._parse_statement()
+            if statement != None:
+                block.statements.append(statement)
+            self._next_token()
+
+        return block
 
     def _parse_identifier(self) -> ast.Expression:
         return ast.Identifier(self.current_token, self.current_token.literal)

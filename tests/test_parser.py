@@ -65,7 +65,8 @@ return 123123;"""
             ast.ExpressionStatement,
             f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
         )
-        self._test_identifier(statement, "foobar")
+        statement = cast(ast.ExpressionStatement, statement)
+        self._test_identifier(statement.expression, "foobar")
 
     def test_integer_literal_expression(self):
         input = "5;"
@@ -231,6 +232,46 @@ return 123123;"""
 
             self.assertEqual(str(program), test["expected_output"])
 
+    def test_if_else_expression(self):
+        input = "if (x < y) { x } else { y }"
+
+        lexer = Lexer(input)
+        parser = Parser(lexer)
+        program = parser.parse_program()
+        self._test_parser_state(parser, program)
+
+        statement = program.statements[0]
+        self.assertIsInstance(
+            statement,
+            ast.ExpressionStatement,
+            f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
+        )
+
+        self.assertIsInstance(
+            statement.expression,
+            ast.IfExpression,
+            f"expression is {type(statement).__name__}, expected 'ast.IfExpression",
+        )
+
+        if_expression: ast.IfExpression = statement.expression
+        self._test_infix_expression(if_expression.condition, "x", "<", "y")
+
+        self.assertEqual(
+            len(if_expression.consequence.statements),
+            1,
+            "expression.consequence.statements has length != 1",
+        )
+        consequence: ast.Expression = if_expression.consequence.statements[0].expression
+        self._test_identifier(consequence, "x")
+
+        self.assertEqual(
+            len(if_expression.alternative.statements),
+            1,
+            "expression.alternative.statements has length != 1",
+        )
+        alternative: ast.Expression = if_expression.alternative.statements[0].expression
+        self._test_identifier(alternative, "y")
+
     def _test_parser_state(
         self,
         parser: Parser,
@@ -304,14 +345,14 @@ return 123123;"""
             f"integer.token_literal() was {integer.token_literal()}, expected '{expected}'",
         )
 
-    def _test_identifier(self, statement: ast.Statement, value: str):
+    def _test_identifier(self, expression: ast.Expression, value: str):
         self.assertIsInstance(
-            statement.expression,
+            expression,
             ast.Identifier,
-            f"statement.expression is {type(statement.expression).__name__}, expected 'ast.Identifier'",
+            f"expression was {type(expression).__name__}, expected 'ast.Identifier'",
         )
 
-        identifier: ast.Identifier = statement.expression
+        identifier: ast.Identifier = expression
         self.assertEqual(
             identifier.value,
             value,
