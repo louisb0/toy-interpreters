@@ -1,6 +1,5 @@
 from src.lexer import Lexer
 from src.parser import Parser
-from src.token import Token
 
 PROMPT = ">> "
 
@@ -11,8 +10,12 @@ def main():
     while expression:
         lexer = Lexer(expression)
         parser = Parser(lexer)
+        program = parser.parse_program()
 
-        print(parser.parse_program())
+        if len(parser.errors) == 0:
+            print(program)
+        else:
+            print("\n".join(parser.errors))
 
         expression = input(PROMPT)
 
