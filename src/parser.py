@@ -95,9 +95,11 @@ class Parser:
         if not self._expect_peek(Token.ASSIGN):
             return None
 
-        # TODO: Expression parsing. Currently just parsing the token
-        # name, need to parse the expression to get the value.
-        while self.current_token.token_type != Token.SEMICOLON:
+        self._next_token()
+
+        statement.value = self._parse_expression(Precedence.LOWEST)
+
+        if self.peak_token.token_type == Token.SEMICOLON:
             self._next_token()
 
         return statement

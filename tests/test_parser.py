@@ -10,23 +10,27 @@ import src.ast as ast
 
 class TestParser(unittest.TestCase):
     def test_let_statements(self):
-        input = """let x = 5;
-let y = 10; 
-let foobar = 83812;"""
-
-        lexer = Lexer(input)
-        parser = Parser(lexer)
-        program = parser.parse_program()
-        self._test_parser_state(parser, program, num_expected_statements=3)
-
         tests = [
-            {"expected_identifier": "x"},
-            {"expected_identifier": "y"},
-            {"expected_identifier": "foobar"},
+            {"input": "let x = 5;", "expected_identifier": "x", "expected_value": 5},
+            {"input": "let y = 10;", "expected_identifier": "y", "expected_value": 10},
+            {
+                "input": "let foobar = 83812;",
+                "expected_identifier": "foobar",
+                "expected_value": 83812,
+            },
         ]
-        for i, test in enumerate(tests):
-            statement = program.statements[i]
+
+        for test in tests:
+            lexer = Lexer(test["input"])
+            parser = Parser(lexer)
+            program = parser.parse_program()
+            self._test_parser_state(parser, program, num_expected_statements=1)
+
+            statement = program.statements[0]
             self._test_let_statement(statement, test["expected_identifier"])
+
+            statement = cast(ast.LetStatement, statement)
+            self._test_literal_expression(statement.value, test["expected_value"])
 
     def test_return_statements(self):
         input = """return 5;
