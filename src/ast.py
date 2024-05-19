@@ -189,3 +189,17 @@ class FunctionLiteral(Expression):
 
     def __str__(self) -> str:
         return f"fn({', '.join(str(p) for p in self.parameters)}) {{{str(self.body)}}}"
+
+
+class CallExpression(Expression):
+    def __init__(self, token: Token, expression: Expression):
+        self.token = token
+        self.expression: Expression = expression
+
+        self.arguments: list[Expression] = []
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"{str(self.expression)}({', '.join([str(a) for a in self.arguments])})"

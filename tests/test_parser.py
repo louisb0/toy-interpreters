@@ -278,7 +278,7 @@ return 123123;"""
         lexer = Lexer(input)
         parser = Parser(lexer)
         program = parser.parse_program()
-        self._test_parser_state(parser, program)
+        self._test_parser_state(parser, program, 1)
 
         statement = program.statements[0]
         self.assertIsInstance(
@@ -330,7 +330,7 @@ return 123123;"""
             lexer = Lexer(test["input"])
             parser = Parser(lexer)
             program = parser.parse_program()
-            self._test_parser_state(parser, program)
+            self._test_parser_state(parser, program, 1)
 
             fn: ast.FunctionLiteral = program.statements[0].expression
             self.assertEqual(
@@ -340,6 +340,60 @@ return 123123;"""
             )
             for i, identifier in enumerate(test["expected_params"]):
                 self._test_literal_expression(fn.parameters[i], identifier)
+
+    def test_call_expression(self):
+        input = "add(1, 2 * 3, 4 + 5);"
+
+        lexer = Lexer(input)
+        parser = Parser(lexer)
+        program = parser.parse_program()
+        self._test_parser_state(parser, program, 1)
+
+        statement = program.statements[0]
+        self.assertIsInstance(
+            statement,
+            ast.ExpressionStatement,
+            f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
+        )
+        self.assertIsInstance(
+            statement.expression,
+            ast.CallExpression,
+            f"program.statemements[0].expression is {type(statement.expression).__name__}, expected 'ast.CallExpression",
+        )
+
+        call: ast.CallExpression = statement.expression
+        self._test_identifier(call.expression, "add")
+        self.assertEqual(
+            len(call.arguments),
+            3,
+            f"expected call expression to have 3 arguments, got {len(call.arguments)}",
+        )
+
+        self._test_literal_expression(call.arguments[0], 1)
+        self._test_infix_expression(call.arguments[1], 2, "*", 3)
+        self._test_infix_expression(call.arguments[2], 4, "+", 5)
+
+    def test_call_expression_parameters(self):
+        tests = [
+            {"input": "add();", "expected_params": []},
+            {"input": "add(x);", "expected_params": ["x"]},
+            {"input": "add(x, y, z);", "expected_params": ["x", "y", "z"]},
+        ]
+
+        for test in tests:
+            lexer = Lexer(test["input"])
+            parser = Parser(lexer)
+            program = parser.parse_program()
+            self._test_parser_state(parser, program, 1)
+
+            call: ast.CallExpression = program.statements[0].expression
+            self.assertEqual(
+                len(call.arguments),
+                len(test["expected_params"]),
+                f"expected call expression to have {test['expected_params']}, got {len(call.arguments)}",
+            )
+            for i, identifier in enumerate(test["expected_params"]):
+                self._test_literal_expression(call.arguments[i], identifier)
 
     def _test_parser_state(
         self,

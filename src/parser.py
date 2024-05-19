@@ -49,6 +49,7 @@ class Parser:
         self._register_infix(Token.NOT_EQ, self._parse_infix_expression)
         self._register_infix(Token.LT, self._parse_infix_expression)
         self._register_infix(Token.GT, self._parse_infix_expression)
+        self._register_infix(Token.LPAREN, self._parse_call_expression)
 
         self.precedences: dict[str, Precedence] = {
             Token.EQ: Precedence.EQUALS,
@@ -59,6 +60,7 @@ class Parser:
             Token.MINUS: Precedence.SUM,
             Token.SLASH: Precedence.PRODUCT,
             Token.ASTERISK: Precedence.PRODUCT,
+            Token.LPAREN: Precedence.CALL,
         }
 
     def parse_program(self) -> ast.Program:
@@ -255,6 +257,33 @@ class Parser:
             return None
 
         return identifiers
+
+    def _parse_call_expression(self, expression: ast.Identifier | ast.FunctionLiteral):
+        call = ast.CallExpression(self.current_token, expression)
+        call.arguments = self._parse_call_arguments()
+
+        return call
+
+    def _parse_call_arguments(self):
+        args: list[ast.Expression] = []
+
+        if self.peak_token.token_type == Token.RPAREN:
+            self._next_token()
+            return args
+
+        self._next_token()
+        args.append(self._parse_expression(Precedence.LOWEST))
+
+        while self.peak_token.token_type == Token.COMMA:
+            self._next_token()
+            self._next_token()
+
+            args.append(self._parse_expression(Precedence.LOWEST))
+
+        if not self._expect_peek(Token.RPAREN):
+            return None
+
+        return args
 
     def _parse_identifier(self) -> ast.Expression:
         return ast.Identifier(self.current_token, self.current_token.literal)
