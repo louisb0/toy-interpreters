@@ -33,26 +33,34 @@ class TestParser(unittest.TestCase):
             self._test_literal_expression(statement.value, test["expected_value"])
 
     def test_return_statements(self):
-        input = """return 5;
-return 10;
-return 123123;"""
+        tests = [
+            {"input": "return 5;", "expected_value": 5},
+            {"input": "return 10;", "expected_value": 10},
+            {"input": "return 123123;", "expected_value": 123123},
+        ]
 
-        lexer = Lexer(input)
-        parser = Parser(lexer)
-        program = parser.parse_program()
-        self._test_parser_state(parser, program, num_expected_statements=3)
+        for test in tests:
+            lexer = Lexer(test["input"])
+            parser = Parser(lexer)
+            program = parser.parse_program()
+            self._test_parser_state(parser, program, num_expected_statements=1)
 
-        for statement in program.statements:
+            statement = program.statements[0]
             self.assertIsInstance(
                 statement,
                 ast.ReturnStatement,
                 f"statement is {type(statement).__name__}, expected ReturnStatement",
             )
+            statement = cast(ast.ReturnStatement, statement)
 
             self.assertEqual(
                 statement.token_literal(),
                 "return",
                 f"statement.token_literal() is {statement.token_literal()}, expected 'return'",
+            )
+
+            self._test_literal_expression(
+                statement.return_value, test["expected_value"]
             )
 
     def test_identifier_expression(self):

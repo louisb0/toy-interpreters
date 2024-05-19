@@ -28,7 +28,6 @@ class Parser:
         self._next_token()
         self._next_token()
 
-        # TODO: Typing
         self.prefix_parse_functions: dict = {}
         self._register_prefix(Token.IDENT, self._parse_identifier)
         self._register_prefix(Token.INT, self._parse_integer_literal)
@@ -109,9 +108,9 @@ class Parser:
 
         self._next_token()
 
-        # TODO: Expression parsing. Currently just parsing the token
-        # name, need to parse the expression to get the value.
-        while self.current_token.token_type != Token.SEMICOLON:
+        statement.return_value = self._parse_expression(Precedence.LOWEST)
+
+        if self.peak_token.token_type == Token.SEMICOLON:
             self._next_token()
 
         return statement
