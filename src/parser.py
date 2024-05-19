@@ -38,6 +38,7 @@ class Parser:
         self._register_prefix(Token.FALSE, self._parse_boolean)
         self._register_prefix(Token.LPAREN, self._parse_grouped_expression)
         self._register_prefix(Token.IF, self._parse_if_expression)
+        self._register_prefix(Token.FUNCTION, self._parse_function_literal)
 
         self.infix_parse_functions: dict = {}
         self._register_infix(Token.PLUS, self._parse_infix_expression)
@@ -218,6 +219,42 @@ class Parser:
             self._next_token()
 
         return block
+
+    def _parse_function_literal(self):
+        function = ast.FunctionLiteral(self.current_token)
+
+        if not self._expect_peek(Token.LPAREN):
+            return None
+
+        function.parameters = self._parse_parameters()
+
+        if not self._expect_peek(Token.LBRACE):
+            return None
+
+        function.body = self._parse_block_statement()
+
+        return function
+
+    def _parse_parameters(self) -> list[ast.Identifier]:
+        identifiers: list[ast.Identifier] = []
+
+        if self.peak_token.token_type == Token.RPAREN:
+            self._next_token()
+            return identifiers
+
+        self._next_token()
+        identifiers.append(self._parse_identifier())
+
+        while self.peak_token.token_type == Token.COMMA:
+            self._next_token()
+            self._next_token()
+
+            identifiers.append(self._parse_identifier())
+
+        if not self._expect_peek(Token.RPAREN):
+            return None
+
+        return identifiers
 
     def _parse_identifier(self) -> ast.Expression:
         return ast.Identifier(self.current_token, self.current_token.literal)

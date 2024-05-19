@@ -272,6 +272,75 @@ return 123123;"""
         alternative: ast.Expression = if_expression.alternative.statements[0].expression
         self._test_identifier(alternative, "y")
 
+    def test_function_literal(self):
+        input = "fn (x, y) { x + y; }"
+
+        lexer = Lexer(input)
+        parser = Parser(lexer)
+        program = parser.parse_program()
+        self._test_parser_state(parser, program)
+
+        statement = program.statements[0]
+        self.assertIsInstance(
+            statement,
+            ast.ExpressionStatement,
+            f"program.statemements[0] is {type(statement).__name__}, expected 'ast.ExpressionStatement",
+        )
+
+        self.assertIsInstance(
+            statement.expression,
+            ast.FunctionLiteral,
+            f"expression is {type(statement).__name__}, expected 'ast.FunctionLiteral",
+        )
+
+        func: ast.FunctionLiteral = statement.expression
+
+        self.assertEqual(
+            len(func.parameters),
+            2,
+            f"function has {len(func.parameters)} parameters, expected 2",
+        )
+
+        self._test_identifier(func.parameters[0], "x")
+        self._test_identifier(func.parameters[1], "y")
+
+        self.assertEqual(
+            len(func.body.statements),
+            1,
+            f"block statement has {len(func.body.statements)} statements, expected 1",
+        )
+
+        self.assertIsInstance(
+            func.body.statements[0].expression,
+            ast.InfixExpression,
+            f"block statement contians {type(func.body.statements[0]).__name__}, expected ast.InfixExpression",
+        )
+
+        body: ast.InfixExpression = func.body.statements[0].expression
+        self._test_infix_expression(body, "x", "+", "y")
+
+    def test_function_literal_parameters(self):
+        tests = [
+            {"input": "fn() {};", "expected_params": []},
+            {"input": "fn(x) {};", "expected_params": ["x"]},
+            {"input": "fn(x, y, z) {};", "expected_params": ["x", "y", "z"]},
+        ]
+
+        for test in tests:
+            lexer = Lexer(test["input"])
+            parser = Parser(lexer)
+            program = parser.parse_program()
+            self._test_parser_state(parser, program)
+
+            fn: ast.FunctionLiteral = program.statements[0].expression
+            self.assertEqual(
+                len(fn.parameters),
+                len(test["expected_params"]),
+                f"expected function to have {test['expected_params']}, got {len(fn.parameters)}",
+            )
+            for i, identifier in enumerate(test["expected_params"]):
+                self._test_literal_expression(fn.parameters[i], identifier)
+
     def _test_parser_state(
         self,
         parser: Parser,

@@ -171,9 +171,21 @@ class IfExpression(Expression):
         return self.token.literal
 
     def __str__(self) -> str:
-        return (
-            f"if{str(self.condition)} {str(self.consequence)}"
-            + f"else {str(self.alternative)}"
-            if self.alternative
-            else ""
-        )
+        result = f"if {self.condition} {{{self.consequence}}}"
+        if self.alternative:
+            result += f" else {{{self.alternative}}}"
+        return result
+
+
+class FunctionLiteral(Expression):
+    def __init__(self, token: Token):
+        self.token = token
+
+        self.parameters: list[Identifier] = []
+        self.body: BlockStatement = None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"fn({', '.join(str(p) for p in self.parameters)}) {{{str(self.body)}}}"
