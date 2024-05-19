@@ -1,3 +1,4 @@
+import graphviz
 from abc import ABC, abstractmethod
 
 from src.token import Token
@@ -203,3 +204,63 @@ class CallExpression(Expression):
 
     def __str__(self) -> str:
         return f"{str(self.expression)}({', '.join([str(a) for a in self.arguments])})"
+
+
+def ast_to_dot(node: Node) -> graphviz.Digraph:
+    # gpt generated mess
+    dot = graphviz.Digraph()
+
+    def add_node(graph, node: Node, parent_id=None):
+        node_id = id(node)
+        label = node.__class__.__name__
+        
+        if isinstance(node, Identifier):
+            label = f"{label}: {node.value}"
+        elif isinstance(node, IntegerLiteral):
+            label = f"{label}: {node.value}"
+        elif isinstance(node, Boolean):
+            label = f"{label}: {node.value}"
+        elif isinstance(node, InfixExpression):
+            label = f"{label}: {node.operator}"
+        elif isinstance(node, PrefixExpression):
+            label = f"{label}: {node.operator}"
+
+        graph.node(str(node_id), label)
+
+        if parent_id is not None:
+            graph.edge(str(parent_id), str(node_id))
+        
+        if isinstance(node, Program):
+            for statement in node.statements:
+                add_node(graph, statement, node_id)
+        elif isinstance(node, LetStatement):
+            add_node(graph, node.name, node_id)
+            add_node(graph, node.value, node_id)
+        elif isinstance(node, ReturnStatement):
+            add_node(graph, node.return_value, node_id)
+        elif isinstance(node, ExpressionStatement):
+            add_node(graph, node.expression, node_id)
+        elif isinstance(node, BlockStatement):
+            for statement in node.statements:
+                add_node(graph, statement, node_id)
+        elif isinstance(node, IfExpression):
+            add_node(graph, node.condition, node_id)
+            add_node(graph, node.consequence, node_id)
+            if node.alternative:
+                add_node(graph, node.alternative, node_id)
+        elif isinstance(node, FunctionLiteral):
+            for param in node.parameters:
+                add_node(graph, param, node_id)
+            add_node(graph, node.body, node_id)
+        elif isinstance(node, CallExpression):
+            add_node(graph, node.expression, node_id)
+            for arg in node.arguments:
+                add_node(graph, arg, node_id)
+        elif isinstance(node, PrefixExpression):
+            add_node(graph, node.right, node_id)
+        elif isinstance(node, InfixExpression):
+            add_node(graph, node.left, node_id)
+            add_node(graph, node.right, node_id)
+
+    add_node(dot, node)
+    return dot
