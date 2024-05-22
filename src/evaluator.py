@@ -1,6 +1,10 @@
 import src.ast as ast
 import src.object as objects
 
+TRUE = objects.Boolean(True)
+FALSE = objects.Boolean(False)
+NULL = objects.Null()
+
 
 def eval(node: ast.Node) -> objects.Object | None:
     match node:
@@ -12,7 +16,7 @@ def eval(node: ast.Node) -> objects.Object | None:
         case ast.IntegerLiteral():
             return objects.Integer(node.value)
         case ast.Boolean():
-            return objects.Boolean(node.value)
+            return _native_bool_to_obj(node.value)
 
     return None
 
@@ -24,3 +28,7 @@ def eval_statements(statements: list[ast.Statement]) -> objects.Object | None:
         result = eval(statement)
 
     return result
+
+
+def _native_bool_to_obj(input: bool) -> objects.Boolean:
+    return TRUE if input else FALSE
