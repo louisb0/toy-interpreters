@@ -11,6 +11,8 @@ def eval(node: ast.Node) -> objects.Object | None:
 
         case ast.IntegerLiteral():
             return objects.Integer(node.value)
+        case ast.Boolean():
+            return objects.Boolean(node.value)
 
     return None
 

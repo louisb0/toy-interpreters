@@ -18,6 +18,16 @@ class TestEvaluator(unittest.TestCase):
             evaluated = self._test_eval(test["input"])
             self._test_integer_object(evaluated, test["expected"])
 
+    def test_eval_boolean_expression(self):
+        tests = [
+            {"input": "true", "expected": True},
+            {"input": "false", "expected": False},
+        ]
+
+        for test in tests:
+            evaluated = self._test_eval(test["input"])
+            self._test_boolean_object(evaluated, test["expected"])
+
     def _test_eval(self, input: str) -> objects.Object | None:
         lexer = Lexer(input)
         parser = Parser(lexer)
@@ -35,4 +45,16 @@ class TestEvaluator(unittest.TestCase):
             obj.value,
             expected,
             f"expected objects.Integer to have value {expected}, got {obj.value}",
+        )
+
+    def _test_boolean_object(self, obj: objects.Object | None, expected: bool):
+        self.assertIsInstance(
+            obj, objects.Boolean, f"expected objects.Boolean, got {type(obj).__name__}"
+        )
+
+        obj = cast(objects.Boolean, obj)
+        self.assertEqual(
+            obj.value,
+            expected,
+            f"expected objects.Boolean to have value {expected}, got {obj.value}",
         )
