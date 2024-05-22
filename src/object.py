@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 class ObjectTypes:
     INTEGER = "INTEGER"
+    BOOLEAN = "BOOLEAN"
 
 
 class Object(ABC):
@@ -24,3 +25,14 @@ class Integer(Object):
 
     def __str__(self) -> str:
         return str(self.value)
+
+
+class Boolean(Object):
+    def __init__(self, value: bool):
+        self.value = value
+
+    def type(self) -> str:
+        return ObjectTypes.BOOLEAN
+
+    def __str__(self) -> str:
+        return str(self.value).lower()
