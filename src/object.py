@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 class ObjectTypes:
     INTEGER = "INTEGER"
     BOOLEAN = "BOOLEAN"
+    NULL = "NULL"
 
 
 class Object(ABC):
@@ -36,3 +37,11 @@ class Boolean(Object):
 
     def __str__(self) -> str:
         return str(self.value).lower()
+
+
+class Null(Object):
+    def type(self) -> str:
+        return ObjectTypes.NULL
+
+    def __str__(self) -> str:
+        return "null"
