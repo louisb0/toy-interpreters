@@ -3,6 +3,8 @@ from typing import cast
 import src.ast as ast
 import src.object as objects
 
+# .type() needs to be switched for instanceof
+
 
 class Evaluator:
     TRUE = objects.Boolean(True)
@@ -25,6 +27,10 @@ class Evaluator:
             case ast.PrefixExpression():
                 right = Evaluator.eval(node.right)
                 return Evaluator.eval_prefix_expression(node.operator, right)
+            case ast.InfixExpression():
+                left = Evaluator.eval(node.left)
+                right = Evaluator.eval(node.right)
+                return Evaluator.eval_infix_expression(left, node.operator, right)
 
         return None
 
@@ -62,11 +68,53 @@ class Evaluator:
 
     @staticmethod
     def _eval_minus_operator_expression(right: objects.Object | None) -> objects.Object:
-        if right.type() != objects.ObjectTypes.INTEGER:
+        if not right or right.type() != objects.ObjectTypes.INTEGER:
             return Evaluator.NULL
 
         right = cast(objects.Integer, right)
         return objects.Integer(-1 * right.value)
+
+    @staticmethod
+    def eval_infix_expression(
+        left: objects.Object | None, operator: str, right: objects.Object | None
+    ) -> objects.Object:
+        if not left or not right:
+            return Evaluator.NULL
+
+        if (
+            left.type() == objects.ObjectTypes.INTEGER
+            and right.type() == objects.ObjectTypes.INTEGER
+        ):
+            left = cast(objects.Integer, left)
+            right = cast(objects.Integer, right)
+
+            return Evaluator._eval_integer_infix_expression(left, operator, right)
+
+        return Evaluator.NULL
+
+    @staticmethod
+    def _eval_integer_infix_expression(
+        left: objects.Integer, operator: str, right: objects.Integer
+    ) -> objects.Object:
+        match operator:
+            case "+":
+                return objects.Integer(left.value + right.value)
+            case "-":
+                return objects.Integer(left.value - right.value)
+            case "*":
+                return objects.Integer(left.value * right.value)
+            case "/":
+                return objects.Integer(left.value // right.value)
+            case "<":
+                return objects.Boolean(left.value < right.value)
+            case ">":
+                return objects.Boolean(left.value > right.value)
+            case "==":
+                return objects.Boolean(left.value == right.value)
+            case "!=":
+                return objects.Boolean(left.value != right.value)
+
+        return Evaluator.NULL
 
     @staticmethod
     def _native_bool_to_obj(input: bool) -> objects.Boolean:
