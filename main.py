@@ -1,7 +1,7 @@
 from src.lexer import Lexer
 from src.parser import Parser
+from src.evaluator import Evaluator
 import src.ast as ast
-import src.evaluator as evaluator
 
 PROMPT = ">> "
 
@@ -31,7 +31,7 @@ def main():
             graph = ast.ast_to_dot(program)
             graph.render("ast", format="png", view=True)
 
-        evaluated = evaluator.eval(program)
+        evaluated = Evaluator.eval(program)
         print(evaluated)
 
 if __name__ == "__main__":

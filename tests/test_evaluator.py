@@ -4,7 +4,7 @@ from typing import cast
 import src.object as objects
 from src.lexer import Lexer
 from src.parser import Parser
-from src.evaluator import eval
+from src.evaluator import Evaluator
 
 
 class TestEvaluator(unittest.TestCase):
@@ -12,6 +12,8 @@ class TestEvaluator(unittest.TestCase):
         tests = [
             {"input": "5", "expected": 5},
             {"input": "10", "expected": 10},
+            {"input": "-5", "expected": -5},
+            {"input": "-10", "expected": -10},
         ]
 
         for test in tests:
@@ -28,12 +30,26 @@ class TestEvaluator(unittest.TestCase):
             evaluated = self._test_eval(test["input"])
             self._test_boolean_object(evaluated, test["expected"])
 
+    def test_bang_operator(self):
+        tests = [
+            {"input": "!true", "expected": False},
+            {"input": "!false", "expected": True},
+            {"input": "!5", "expected": False},
+            {"input": "!!true", "expected": True},
+            {"input": "!!false", "expected": False},
+            {"input": "!!5", "expected": True},
+        ]
+
+        for test in tests:
+            evaluated = self._test_eval(test["input"])
+            self._test_boolean_object(evaluated, test["expected"])
+
     def _test_eval(self, input: str) -> objects.Object | None:
         lexer = Lexer(input)
         parser = Parser(lexer)
         program = parser.parse_program()
 
-        return eval(program)
+        return Evaluator.eval(program)
 
     def _test_integer_object(self, obj: objects.Object | None, expected: int):
         self.assertIsInstance(
