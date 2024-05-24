@@ -43,6 +43,15 @@ class TestEvaluator(unittest.TestCase):
             {"input": "1 != 1", "expected": False},
             {"input": "1 == 2", "expected": False},
             {"input": "1 != 2", "expected": True},
+            {"input": "true == true", "expected": True},
+            {"input": "false == false", "expected": True},
+            {"input": "true == false", "expected": False},
+            {"input": "true != false", "expected": True},
+            {"input": "false != true", "expected": True},
+            {"input": "(1 < 2) == true", "expected": True},
+            {"input": "(1 < 2) == false", "expected": False},
+            {"input": "(1 > 2) == true", "expected": False},
+            {"input": "(1 > 2) == false", "expected": True},
         ]
 
         for test in tests:

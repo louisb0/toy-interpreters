@@ -89,6 +89,10 @@ class Evaluator:
             right = cast(objects.Integer, right)
 
             return Evaluator._eval_integer_infix_expression(left, operator, right)
+        elif operator == "==":
+            return Evaluator._native_bool_to_obj(left == right)
+        elif operator == "!=":
+            return Evaluator._native_bool_to_obj(left != right)
 
         return Evaluator.NULL
 
