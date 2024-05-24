@@ -106,13 +106,13 @@ class Evaluator:
             case "/":
                 return objects.Integer(left.value // right.value)
             case "<":
-                return objects.Boolean(left.value < right.value)
+                return Evaluator._native_bool_to_obj(left.value < right.value)
             case ">":
-                return objects.Boolean(left.value > right.value)
+                return Evaluator._native_bool_to_obj(left.value > right.value)
             case "==":
-                return objects.Boolean(left.value == right.value)
+                return Evaluator._native_bool_to_obj(left.value == right.value)
             case "!=":
-                return objects.Boolean(left.value != right.value)
+                return Evaluator._native_bool_to_obj(left.value != right.value)
 
         return Evaluator.NULL
 
