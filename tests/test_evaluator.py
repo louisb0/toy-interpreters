@@ -72,6 +72,25 @@ class TestEvaluator(unittest.TestCase):
             evaluated = self._test_eval(test["input"])
             self._test_boolean_object(evaluated, test["expected"])
 
+    def test_conditional_expression(self):
+        tests = [
+            {"input": "if (true) { 10 }", "expected": 10},
+            {"input": "if (false) { 10 }", "expected": None},
+            {"input": "if (1) { 10 }", "expected": 10},
+            {"input": "if (1 < 2) { 10 }", "expected": 10},
+            {"input": "if (1 > 2) { 10 }", "expected": None},
+            {"input": "if (1 > 2) { 10 } else { 20 }", "expected": 20},
+            {"input": "if (1 < 2) { 10 } else { 20 }", "expected": 10},
+        ]
+
+        for test in tests:
+            evaluated = self._test_eval(test["input"])
+
+            if isinstance(test["expected"], int):
+                self._test_integer_object(evaluated, test["expected"])
+            elif test["expected"] is None:
+                self._test_null_object(evaluated)
+
     def _test_eval(self, input: str) -> objects.Object | None:
         lexer = Lexer(input)
         parser = Parser(lexer)
@@ -101,4 +120,9 @@ class TestEvaluator(unittest.TestCase):
             obj.value,
             expected,
             f"expected objects.Boolean to have value {expected}, got {obj.value}",
+        )
+
+    def _test_null_object(self, obj: objects.Object | None):
+        self.assertEqual(
+            obj, Evaluator.NULL, f"expected Evaluator.NULL, got {type(obj).__name__}"
         )

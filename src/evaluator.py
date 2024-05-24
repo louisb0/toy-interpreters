@@ -32,6 +32,12 @@ class Evaluator:
                 right = Evaluator.eval(node.right)
                 return Evaluator.eval_infix_expression(left, node.operator, right)
 
+            case ast.BlockStatement():
+                return Evaluator.eval_statements(node.statements)
+
+            case ast.IfExpression():
+                return Evaluator.eval_conditional_expression(node)
+
         return None
 
     @staticmethod
@@ -119,6 +125,26 @@ class Evaluator:
                 return Evaluator._native_bool_to_obj(left.value != right.value)
 
         return Evaluator.NULL
+
+    @staticmethod
+    def eval_conditional_expression(node: ast.IfExpression) -> objects.Object | None:
+        condition = Evaluator.eval(node.condition)
+
+        if Evaluator._is_truthy(condition):
+            return Evaluator.eval(node.consequence)
+        elif node.alternative != None:
+            return Evaluator.eval(node.alternative)
+        else:
+            return Evaluator.NULL
+
+    @staticmethod
+    def _is_truthy(obj: objects.Object | None) -> bool:
+        if obj == Evaluator.FALSE:
+            return False
+        elif obj == Evaluator.NULL:
+            return False
+        else:
+            return True
 
     @staticmethod
     def _native_bool_to_obj(input: bool) -> objects.Boolean:
