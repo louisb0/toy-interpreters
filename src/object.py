@@ -5,6 +5,7 @@ class ObjectTypes:
     INTEGER = "INTEGER"
     BOOLEAN = "BOOLEAN"
     NULL = "NULL"
+    RETURN_VALUE = "RETURN"
 
 
 class Object(ABC):
@@ -45,3 +46,14 @@ class Null(Object):
 
     def __str__(self) -> str:
         return "null"
+
+
+class ReturnValue(Object):
+    def __init__(self, value: Object | None):
+        self.value = value
+
+    def type(self) -> str:
+        return ObjectTypes.RETURN_VALUE
+
+    def __str__(self) -> str:
+        return str(self.value)

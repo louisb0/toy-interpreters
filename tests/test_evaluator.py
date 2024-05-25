@@ -91,6 +91,27 @@ class TestEvaluator(unittest.TestCase):
             elif test["expected"] is None:
                 self._test_null_object(evaluated)
 
+    def test_eval_return_expression(self):
+        tests = [
+            {"input": "return 10;", "expected": 10},
+            {"input": "return 10; 9;", "expected": 10},
+            {"input": "return 2 * 5; 9;", "expected": 10},
+            {"input": "9; return 2 * 5; 9;", "expected": 10},
+            {
+                "input": """if (2>1) { 
+                    if (2>1) {
+                        return 10;
+                    } 
+                    return 1;
+                }""",
+                "expected": 10,
+            },
+        ]
+
+        for test in tests:
+            evaluated = self._test_eval(test["input"])
+            self._test_integer_object(evaluated, test["expected"])
+
     def _test_eval(self, input: str) -> objects.Object | None:
         lexer = Lexer(input)
         parser = Parser(lexer)

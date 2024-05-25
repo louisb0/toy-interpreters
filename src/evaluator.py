@@ -15,7 +15,7 @@ class Evaluator:
     def eval(node: ast.Node) -> objects.Object | None:
         match node:
             case ast.Program():
-                return Evaluator.eval_statements(node.statements)
+                return Evaluator.eval_program(node)
             case ast.ExpressionStatement():
                 return Evaluator.eval(node.expression)
 
@@ -33,19 +33,38 @@ class Evaluator:
                 return Evaluator.eval_infix_expression(left, node.operator, right)
 
             case ast.BlockStatement():
-                return Evaluator.eval_statements(node.statements)
+                return Evaluator.eval_block_statement(node)
 
             case ast.IfExpression():
                 return Evaluator.eval_conditional_expression(node)
 
+            case ast.ReturnStatement():
+                value = Evaluator.eval(node.return_value)
+                return objects.ReturnValue(value)
+
         return None
 
     @staticmethod
-    def eval_statements(statements: list[ast.Statement]) -> objects.Object | None:
+    def eval_program(program: ast.Program) -> objects.Object | None:
         result = None
 
-        for statement in statements:
+        for statement in program.statements:
             result = Evaluator.eval(statement)
+
+            if isinstance(result, objects.ReturnValue):
+                return result.value
+
+        return result
+
+    @staticmethod
+    def eval_block_statement(block: ast.BlockStatement) -> objects.Object | None:
+        result = None
+
+        for statement in block.statements:
+            result = Evaluator.eval(statement)
+
+            if isinstance(result, objects.ReturnValue):
+                return result
 
         return result
 
