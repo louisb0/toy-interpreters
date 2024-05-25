@@ -58,7 +58,7 @@ class TestEvaluator(unittest.TestCase):
             evaluated = self._test_eval(test["input"])
             self._test_boolean_object(evaluated, test["expected"])
 
-    def test_bang_operator(self):
+    def test_eval_bang_operator(self):
         tests = [
             {"input": "!true", "expected": False},
             {"input": "!false", "expected": True},
@@ -72,7 +72,7 @@ class TestEvaluator(unittest.TestCase):
             evaluated = self._test_eval(test["input"])
             self._test_boolean_object(evaluated, test["expected"])
 
-    def test_conditional_expression(self):
+    def test_eval_conditional_expression(self):
         tests = [
             {"input": "if (true) { 10 }", "expected": 10},
             {"input": "if (false) { 10 }", "expected": None},
