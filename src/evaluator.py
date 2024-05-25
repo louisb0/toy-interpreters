@@ -3,8 +3,6 @@ from typing import cast
 import src.ast as ast
 import src.object as objects
 
-# .type() needs to be switched for instanceof
-
 
 class Evaluator:
     TRUE = objects.Boolean(True)
@@ -93,7 +91,7 @@ class Evaluator:
 
     @staticmethod
     def _eval_minus_operator_expression(right: objects.Object | None) -> objects.Object:
-        if not right or right.type() != objects.ObjectTypes.INTEGER:
+        if not right or not isinstance(right, objects.Integer):
             return Evaluator.NULL
 
         right = cast(objects.Integer, right)
@@ -106,10 +104,7 @@ class Evaluator:
         if not left or not right:
             return Evaluator.NULL
 
-        if (
-            left.type() == objects.ObjectTypes.INTEGER
-            and right.type() == objects.ObjectTypes.INTEGER
-        ):
+        if isinstance(left, objects.Integer) and isinstance(right, objects.Integer):
             left = cast(objects.Integer, left)
             right = cast(objects.Integer, right)
 
