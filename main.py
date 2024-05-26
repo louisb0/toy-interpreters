@@ -1,6 +1,7 @@
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import Evaluator
+from src.object import Environment
 import src.ast as ast
 
 PROMPT = ">> "
@@ -10,6 +11,8 @@ def main():
     print("=" * 60)
     print("Prefix your expression with 'visualise: ' to get a rendered AST.")
     print("=" * 60)
+
+    env = Environment()
 
     while True:
         expression = input(PROMPT)
@@ -31,7 +34,7 @@ def main():
             graph = ast.ast_to_dot(program)
             graph.render("ast", format="png", view=True)
 
-        evaluated = Evaluator.eval(program)
+        evaluated = Evaluator.eval(program, env)
         print(evaluated)
 
 if __name__ == "__main__":
