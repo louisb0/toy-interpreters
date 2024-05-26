@@ -148,6 +148,7 @@ class TestEvaluator(unittest.TestCase):
                 """,
                 "expected_message": "unknown operator: Boolean + Boolean",
             },
+            {"input": "x", "expected_message": "identifier not found: x"},
         ]
 
         for test in tests:
@@ -162,12 +163,25 @@ class TestEvaluator(unittest.TestCase):
             evaluated = cast(objects.Error, evaluated)
             self.assertEqual(evaluated.message, test["expected_message"])
 
+    def test_eval_let_statements(self):
+        tests = [
+            {"input": "let a = 5; a;", "expected": 5},
+            # {"input": "let a = 5 * 5; a;", "expected": 25},
+            # {"input": "let a = 5; let b = a; b;", "expected": 5},
+            # {"input": "let a = 5; let b = a; let c = a + b + 5; c;", "expected": 15},
+        ]
+
+        for test in tests:
+            evaluated = self._test_eval(test["input"])
+            self._test_integer_object(evaluated, test["expected"])
+
     def _test_eval(self, input: str) -> objects.Object | None:
         lexer = Lexer(input)
         parser = Parser(lexer)
         program = parser.parse_program()
+        env = objects.Environment()
 
-        return Evaluator.eval(program)
+        return Evaluator.eval(program, env)
 
     def _test_integer_object(self, obj: objects.Object | None, expected: int):
         self.assertIsInstance(

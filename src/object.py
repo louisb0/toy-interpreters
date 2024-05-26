@@ -7,6 +7,17 @@ class Object(ABC):
         raise NotImplementedError()
 
 
+class Environment:
+    def __init__(self):
+        self.store: dict[str, Object] = {}
+
+    def get(self, name: str) -> Object | None:
+        return self.store.get(name)
+
+    def set(self, name: str, value: Object):
+        self.store[name] = value
+
+
 class Integer(Object):
     def __init__(self, value: int):
         self.value = value

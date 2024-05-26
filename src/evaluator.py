@@ -10,12 +10,12 @@ class Evaluator:
     NULL = objects.Null()
 
     @staticmethod
-    def eval(node: ast.Node) -> objects.Object:
+    def eval(node: ast.Node, env: objects.Environment) -> objects.Object:
         match node:
             case ast.Program():
-                return Evaluator.eval_program(node)
+                return Evaluator.eval_program(node, env)
             case ast.ExpressionStatement():
-                return Evaluator.eval(node.expression)
+                return Evaluator.eval(node.expression, env)
 
             case ast.IntegerLiteral():
                 return objects.Integer(node.value)
@@ -23,43 +23,53 @@ class Evaluator:
                 return Evaluator._native_bool_to_obj(node.value)
 
             case ast.PrefixExpression():
-                right = Evaluator.eval(node.right)
+                right = Evaluator.eval(node.right, env)
                 if isinstance(right, objects.Error):
                     return right
 
                 return Evaluator.eval_prefix_expression(node.operator, right)
             case ast.InfixExpression():
-                left = Evaluator.eval(node.left)
+                left = Evaluator.eval(node.left, env)
                 if isinstance(left, objects.Error):
                     return left
 
-                right = Evaluator.eval(node.right)
+                right = Evaluator.eval(node.right, env)
                 if isinstance(right, objects.Error):
                     return right
 
                 return Evaluator.eval_infix_expression(left, node.operator, right)
 
             case ast.BlockStatement():
-                return Evaluator.eval_block_statement(node)
+                return Evaluator.eval_block_statement(node, env)
 
             case ast.IfExpression():
-                return Evaluator.eval_conditional_expression(node)
+                return Evaluator.eval_conditional_expression(node, env)
 
             case ast.ReturnStatement():
-                value = Evaluator.eval(node.return_value)
+                value = Evaluator.eval(node.return_value, env)
                 if isinstance(value, objects.Error):
                     return value
 
                 return objects.ReturnValue(value)
 
+            case ast.LetStatement():
+                value = Evaluator.eval(node.value, env)
+                if isinstance(value, objects.Error):
+                    return value
+
+                env.set(node.name.value, value)
+                return Evaluator.NULL
+            case ast.Identifier():
+                return Evaluator.eval_identifier(node, env)
+
         return objects.Error(f"cannot evaluate type: {type(node).__name__}")
 
     @staticmethod
-    def eval_program(program: ast.Program) -> objects.Object:
+    def eval_program(program: ast.Program, env: objects.Environment) -> objects.Object:
         result = Evaluator.NULL
 
         for statement in program.statements:
-            result = Evaluator.eval(statement)
+            result = Evaluator.eval(statement, env)
 
             if isinstance(result, objects.ReturnValue):
                 return result.value
@@ -69,11 +79,13 @@ class Evaluator:
         return result
 
     @staticmethod
-    def eval_block_statement(block: ast.BlockStatement) -> objects.Object:
+    def eval_block_statement(
+        block: ast.BlockStatement, env: objects.Environment
+    ) -> objects.Object:
         result = Evaluator.NULL
 
         for statement in block.statements:
-            result = Evaluator.eval(statement)
+            result = Evaluator.eval(statement, env)
 
             if isinstance(result, objects.ReturnValue):
                 return result
@@ -161,15 +173,17 @@ class Evaluator:
         )
 
     @staticmethod
-    def eval_conditional_expression(node: ast.IfExpression) -> objects.Object:
-        condition = Evaluator.eval(node.condition)
+    def eval_conditional_expression(
+        node: ast.IfExpression, env: objects.Environment
+    ) -> objects.Object:
+        condition = Evaluator.eval(node.condition, env)
         if isinstance(condition, objects.Error):
             return condition
 
         if Evaluator._is_truthy(condition):
-            return Evaluator.eval(node.consequence)
+            return Evaluator.eval(node.consequence, env)
         elif node.alternative != None:
-            return Evaluator.eval(node.alternative)
+            return Evaluator.eval(node.alternative, env)
         else:
             return Evaluator.NULL
 
@@ -181,6 +195,16 @@ class Evaluator:
             return False
         else:
             return True
+
+    @staticmethod
+    def eval_identifier(
+        node: ast.Identifier, env: objects.Environment
+    ) -> objects.Object:
+        value = env.get(node.value)
+        if not value:
+            return objects.Error(f"identifier not found: {node.value}")
+
+        return value
 
     @staticmethod
     def _native_bool_to_obj(input: bool) -> objects.Boolean:
