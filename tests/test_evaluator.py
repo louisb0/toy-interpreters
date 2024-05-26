@@ -98,12 +98,14 @@ class TestEvaluator(unittest.TestCase):
             {"input": "return 2 * 5; 9;", "expected": 10},
             {"input": "9; return 2 * 5; 9;", "expected": 10},
             {
-                "input": """if (2>1) { 
+                "input": """
+                if (2>1) { 
                     if (2>1) {
                         return 10;
                     } 
                     return 1;
-                }""",
+                }
+                """,
                 "expected": 10,
             },
         ]
@@ -111,6 +113,54 @@ class TestEvaluator(unittest.TestCase):
         for test in tests:
             evaluated = self._test_eval(test["input"])
             self._test_integer_object(evaluated, test["expected"])
+
+    def test_eval_error(self):
+        tests = [
+            {
+                "input": "5 + true;",
+                "expected_message": "type mismatch: Integer + Boolean",
+            },
+            {
+                "input": "5 + true; 5;",
+                "expected_message": "type mismatch: Integer + Boolean",
+            },
+            {"input": "-true", "expected_message": "unknown operator: -Boolean"},
+            {
+                "input": "true + false;",
+                "expected_message": "unknown operator: Boolean + Boolean",
+            },
+            {
+                "input": "5; true + false; 5",
+                "expected_message": "unknown operator: Boolean + Boolean",
+            },
+            {
+                "input": "if (10 > 1) { true + false; }",
+                "expected_message": "unknown operator: Boolean + Boolean",
+            },
+            {
+                "input": """
+                if (10 > 1) {
+                    if (10 > 1) {
+                        return true + false;
+                    }
+                    return 1;
+                }
+                """,
+                "expected_message": "unknown operator: Boolean + Boolean",
+            },
+        ]
+
+        for test in tests:
+            evaluated = self._test_eval(test["input"])
+
+            self.assertIsInstance(
+                evaluated,
+                objects.Error,
+                f"expected objects.Error, got {type(evaluated).__name__}",
+            )
+
+            evaluated = cast(objects.Error, evaluated)
+            self.assertEqual(evaluated.message, test["expected_message"])
 
     def _test_eval(self, input: str) -> objects.Object | None:
         lexer = Lexer(input)

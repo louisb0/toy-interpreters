@@ -29,8 +29,16 @@ class Null(Object):
 
 
 class ReturnValue(Object):
-    def __init__(self, value: Object | None):
+    def __init__(self, value: Object):
         self.value = value
 
     def __str__(self) -> str:
         return str(self.value)
+
+
+class Error(Object):
+    def __init__(self, message: str):
+        self.message = message
+
+    def __str__(self) -> str:
+        return self.message
