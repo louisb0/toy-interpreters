@@ -166,9 +166,58 @@ class TestEvaluator(unittest.TestCase):
     def test_eval_let_statements(self):
         tests = [
             {"input": "let a = 5; a;", "expected": 5},
-            # {"input": "let a = 5 * 5; a;", "expected": 25},
-            # {"input": "let a = 5; let b = a; b;", "expected": 5},
-            # {"input": "let a = 5; let b = a; let c = a + b + 5; c;", "expected": 15},
+            {"input": "let a = 5 * 5; a;", "expected": 25},
+            {"input": "let a = 5; let b = a; b;", "expected": 5},
+            {"input": "let a = 5; let b = a; let c = a + b + 5; c;", "expected": 15},
+        ]
+
+        for test in tests:
+            evaluated = self._test_eval(test["input"])
+            self._test_integer_object(evaluated, test["expected"])
+
+    def test_eval_function(self):
+        input = "fn(x) { x + 2; }"
+        evaluated = self._test_eval(input)
+
+        self.assertIsInstance(
+            evaluated,
+            objects.Function,
+            f"expected objects.Function, got {type(evaluated).__name__}",
+        )
+
+        evaluated = cast(objects.Function, evaluated)
+        self.assertEqual(
+            len(evaluated.parameters),
+            1,
+            f"expected function to have 1 parameter, got {len(evaluated.parameters)}",
+        )
+
+        self.assertEqual(
+            str(evaluated.parameters[0]),
+            "x",
+            f"expected 'x' as a parameter, got {str(evaluated.parameters[0])}",
+        )
+
+        self.assertEqual(
+            str(evaluated.body),
+            "(x + 2)",
+            f"expected '(x + 2)' as a parameter, got {str(evaluated.body)}",
+        )
+
+    def test_eval_call_expression(self):
+        tests = [
+            {"input": "let identity = fn(x) { x; }; identity(5);", "expected": 5},
+            {
+                "input": "let identity = fn(x) { return x; }; identity(5);",
+                "expected": 5,
+            },
+            {"input": "let double = fn(x) { x * 2; }; double(5);", "expected": 10},
+            {"input": "let add = fn(x, y) { x + y; }; add(5, 5);", "expected": 10},
+            {
+                "input": "let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));",
+                "expected": 20,
+            },
+            {"input": "fn(x) { x; }(5)", "expected": 5},
         ]
 
         for test in tests:

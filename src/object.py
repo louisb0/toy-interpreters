@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import src.ast as ast
 
 
 class Object(ABC):
@@ -8,11 +9,18 @@ class Object(ABC):
 
 
 class Environment:
-    def __init__(self):
+    def __init__(self, outer: "Environment | None" = None):
         self.store: dict[str, Object] = {}
 
+        self.outer = outer
+
     def get(self, name: str) -> Object | None:
-        return self.store.get(name)
+        result = self.store.get(name)
+
+        if not result and self.outer is not None:
+            return self.outer.get(name)
+
+        return result
 
     def set(self, name: str, value: Object):
         self.store[name] = value
@@ -53,3 +61,20 @@ class Error(Object):
 
     def __str__(self) -> str:
         return self.message
+
+
+class Function(Object):
+    def __init__(
+        self,
+        parameters: list[ast.Identifier],
+        body: ast.BlockStatement,
+        env: Environment,
+    ):
+        self.parameters = parameters
+        self.body = body
+        self.env = env
+
+    def __str__(self):
+        return f"""fn({', '.join(str(p) for p in self.parameters)}) {{
+            {str(self.body)}
+        }}"""

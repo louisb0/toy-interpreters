@@ -45,6 +45,18 @@ class Evaluator:
             case ast.IfExpression():
                 return Evaluator.eval_conditional_expression(node, env)
 
+            case ast.CallExpression():
+                function = Evaluator.eval(node.expression, env)
+                if isinstance(function, objects.Error):
+                    return function
+
+                args = Evaluator.eval_expressions(node.arguments, env)
+                if len(args) == 1 and isinstance(args[0], objects.Error):
+                    return args[0]
+
+                return Evaluator.eval_function_application(function, args)
+            case ast.FunctionLiteral():
+                return objects.Function(node.parameters, node.body, env)
             case ast.ReturnStatement():
                 value = Evaluator.eval(node.return_value, env)
                 if isinstance(value, objects.Error):
@@ -205,6 +217,43 @@ class Evaluator:
             return objects.Error(f"identifier not found: {node.value}")
 
         return value
+
+    @staticmethod
+    def eval_expressions(
+        expressions: list[ast.Expression], env: objects.Environment
+    ) -> list[objects.Object]:
+        result: list[objects.Object] = []
+
+        for expression in expressions:
+            evaluated = Evaluator.eval(expression, env)
+            if isinstance(evaluated, objects.Error):
+                return [evaluated]
+
+            result.append(evaluated)
+
+        return result
+
+    @staticmethod
+    def eval_function_application(
+        function: objects.Object, args: list[objects.Object]
+    ) -> objects.Object:
+        if not isinstance(function, objects.Function):
+            return objects.Error(f"not a function: {type(function).__name__}")
+
+        if not len(function.parameters) == len(args):
+            return objects.Error(
+                f"mismatched argument(s): {', '.join(str(a) for a in args)}"
+            )
+
+        extended_environment = objects.Environment(outer=function.env)
+        for index, param in enumerate(function.parameters):
+            extended_environment.set(param.value, args[index])
+
+        evaluated = Evaluator.eval(function.body, extended_environment)
+        if isinstance(evaluated, objects.ReturnValue):
+            return evaluated.value
+
+        return evaluated
 
     @staticmethod
     def _native_bool_to_obj(input: bool) -> objects.Boolean:
