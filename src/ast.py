@@ -40,7 +40,7 @@ class LetStatement(Statement):
         self.token = token
 
         self.name: Identifier = None
-        self.value: str = None
+        self.value: Expression = None
 
     def token_literal(self) -> str:
         return self.token.literal
@@ -213,7 +213,7 @@ def ast_to_dot(node: Node) -> graphviz.Digraph:
     def add_node(graph, node: Node, parent_id=None):
         node_id = id(node)
         label = node.__class__.__name__
-        
+
         if isinstance(node, Identifier):
             label = f"{label}: {node.value}"
         elif isinstance(node, IntegerLiteral):
@@ -229,7 +229,7 @@ def ast_to_dot(node: Node) -> graphviz.Digraph:
 
         if parent_id is not None:
             graph.edge(str(parent_id), str(node_id))
-        
+
         if isinstance(node, Program):
             for statement in node.statements:
                 add_node(graph, statement, node_id)

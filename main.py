@@ -1,5 +1,7 @@
 from src.lexer import Lexer
 from src.parser import Parser
+from src.evaluator import Evaluator
+from src.object import Environment
 import src.ast as ast
 
 PROMPT = ">> "
@@ -10,9 +12,15 @@ def main():
     print("Prefix your expression with 'visualise: ' to get a rendered AST.")
     print("=" * 60)
 
-    expression = input(PROMPT)
-    while expression:
+    env = Environment()
+
+    while True:
+        expression = input(PROMPT)
+        if not expression:
+            return
+
         visualise_ast = "visualise: " in expression.lower()
+        expression = expression.replace("visualise: ", "")
 
         lexer = Lexer(expression)
         parser = Parser(lexer)
@@ -20,14 +28,14 @@ def main():
 
         if len(parser.errors) != 0:
             print("\n".join(parser.errors))
-        else:
-            print(program)
-            if visualise_ast:
-                graph = ast.ast_to_dot(program)
-                graph.render("ast", format="png", view=True)
+            continue
 
-        expression = input(PROMPT)
+        if visualise_ast:
+            graph = ast.ast_to_dot(program)
+            graph.render("ast", format="png", view=True)
 
+        evaluated = Evaluator.eval(program, env)
+        print(evaluated)
 
 if __name__ == "__main__":
     main()
