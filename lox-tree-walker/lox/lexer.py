@@ -84,8 +84,6 @@ class Token:
 
 
 class Lexer:
-    keywords: dict[str, TokenType] = {"if": TokenType.IF}
-
     def __init__(self, source: str):
         self.source = source
         self.tokens: list[Token] = []
