@@ -27,8 +27,8 @@ def format_node(class_spec: dict) -> str:
     def __init__(self, {inline_attributes_str}):
         {defn_attributes_str}
         
-        def accept(self, visitor: ExpressionVisitor):
-            return visitor.visit{name}{super_class}(self)
+    def accept(self, visitor: ExpressionVisitor):
+        return visitor.visit{name}{super_class}(self)
     """
 
 
@@ -39,7 +39,7 @@ def format_visitor_abc(class_specs: list[dict]) -> str:
         name, super_class = map(str.strip, class_spec["name"].split(":"))
         res += f"""
     @abstractmethod
-    def visit{name}{super_class}(self, expr: {name}):
+    def visit{name}{super_class}(self, expr: "{name}"):
         pass\n"""
 
     return res
@@ -60,7 +60,7 @@ def generate(spec: list[str]) -> str:
             class_specs.append(class_spec)
             attribute_store.clear()
 
-    res += "\n\n" + format_visitor_abc(class_specs) 
+    res = "\n\n" + format_visitor_abc(class_specs) + res
 
     # ': Any' is not a valid type annotation in native python3.11
     # so we drop it, could deal in format_node() but...........
