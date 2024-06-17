@@ -3,14 +3,16 @@ import sys
 # TODO: Rework this garbage
 
 ast_header = """
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from lox.lexer import Token
 from lox.visitors import Visitor
 
 
 class Expression(ABC):
-    pass
+    @abstractmethod
+    def accept(self, visitor: Visitor):
+        raise NotImplementedError()
 """
 
 visitor_header = """
@@ -22,7 +24,8 @@ import lox.ast as ast
 
 def format_node(class_spec: dict) -> str:
     name, super_class = map(str.strip, class_spec["name"].split(":"))
-    attributes = [attr.strip() for attr in class_spec["attributes"]]
+    attributes = [attr.strip() for attr in class_spec["attributes"]] 
+    attributes.reverse()
 
     inline_attributes_str = ", ".join(attributes)
     defn_attributes_str = "\n        ".join(

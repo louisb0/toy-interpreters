@@ -1,17 +1,19 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from lox.lexer import Token
 from lox.visitors import Visitor
 
 
 class Expression(ABC):
-    pass
+    @abstractmethod
+    def accept(self, visitor: Visitor):
+        raise NotImplementedError()
 
 
 class Unary(Expression):
-    def __init__(self, right: Expression, operator: Token):
-        self.right = right
+    def __init__(self, operator: Token, right: Expression):
         self.operator = operator
+        self.right = right
         
     def accept(self, visitor: Visitor):
         return visitor.visitUnaryExpression(self)
@@ -34,10 +36,10 @@ class Grouping(Expression):
     
 
 class Binary(Expression):
-    def __init__(self, right: Expression, token: Token, left: Expression):
-        self.right = right
-        self.token = token
+    def __init__(self, left: Expression, token: Token, right: Expression):
         self.left = left
+        self.token = token
+        self.right = right
         
     def accept(self, visitor: Visitor):
         return visitor.visitBinaryExpression(self)
