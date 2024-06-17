@@ -47,7 +47,7 @@ def format_visitor_abc(class_specs: list[dict]) -> str:
         res += f"""
     @abstractmethod
     def visit{name}{super_class}(self, expr: ast.{name}):
-        pass\n"""
+        raise NotImplementedError()\n"""
 
     return res
 

@@ -6,16 +6,16 @@ import lox.ast as ast
 class Visitor(ABC):
     @abstractmethod
     def visitUnaryExpression(self, expr: ast.Unary):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def visitLiteralExpression(self, expr: ast.Literal):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def visitGroupingExpression(self, expr: ast.Grouping):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def visitBinaryExpression(self, expr: ast.Binary):
-        pass
+        raise NotImplementedError()
