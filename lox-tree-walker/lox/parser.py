@@ -1,5 +1,10 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from lox.lexer import Token
+
 import lox.ast as ast
-from lox.lexer import Token, TokenType
+from lox.lexer import TokenType
 
 
 class Parser:
@@ -18,14 +23,14 @@ class Parser:
     call expression(), equality(), ..., unary(), primary().
     """
 
-    def __init__(self, tokens: list[Token]):
+    def __init__(self, tokens: list["Token"]):
         self.tokens = tokens
         self.current = 0
 
-    def expression(self) -> ast.Expression:
+    def expression(self) -> "ast.Expression":
         return self.equality()
 
-    def equality(self) -> ast.Expression:
+    def equality(self) -> "ast.Expression":
         expr = self.comparison()
 
         while self.match([TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL]):
@@ -36,7 +41,7 @@ class Parser:
 
         return expr
 
-    def comparison(self) -> ast.Expression:
+    def comparison(self) -> "ast.Expression":
         expr = self.term()
 
         while self.match(
@@ -54,7 +59,7 @@ class Parser:
 
         return expr
 
-    def term(self) -> ast.Expression:
+    def term(self) -> "ast.Expression":
         expr = self.factor()
 
         while self.match([TokenType.PLUS, TokenType.MINUS]):
@@ -65,7 +70,7 @@ class Parser:
 
         return expr
 
-    def factor(self) -> ast.Expression:
+    def factor(self) -> "ast.Expression":
         expr = self.unary()
 
         while self.match([TokenType.STAR, TokenType.SLASH]):
@@ -76,7 +81,7 @@ class Parser:
 
         return expr
 
-    def unary(self) -> ast.Expression:
+    def unary(self) -> "ast.Expression":
         if self.match([TokenType.BANG, TokenType.MINUS]):
             operator = self.previous()
             right = self.unary()
@@ -85,7 +90,7 @@ class Parser:
 
         return self.primary()
 
-    def primary(self) -> ast.Expression:
+    def primary(self) -> "ast.Expression":
         if self.match([TokenType.TRUE]):
             return ast.Literal(True)
         elif self.match([TokenType.FALSE]):
@@ -103,7 +108,7 @@ class Parser:
 
         return ast.Literal(None)  # never hit. make pylance shhhh
 
-    def match(self, token_types: list[TokenType]) -> bool:
+    def match(self, token_types: list["TokenType"]) -> bool:
         for type in token_types:
             if self.check(type):
                 self.advance()
@@ -111,13 +116,13 @@ class Parser:
 
         return False
 
-    def check(self, type: TokenType) -> bool:
+    def check(self, type: "TokenType") -> bool:
         if self.is_at_end():
             return False
 
         return self.peek().type == type
 
-    def advance(self) -> Token:
+    def advance(self) -> "Token":
         if not self.is_at_end():
             self.current += 1
 
@@ -126,11 +131,11 @@ class Parser:
     def is_at_end(self) -> bool:
         return self.peek() == TokenType.EOF
 
-    def peek(self) -> Token:
+    def peek(self) -> "Token":
         return self.tokens[self.current]
 
-    def previous(self) -> Token:
+    def previous(self) -> "Token":
         return self.tokens[self.current - 1]
 
-    def consume(self, expected: TokenType, error_message: str):
+    def consume(self, expected: "TokenType", error_message: str):
         pass
