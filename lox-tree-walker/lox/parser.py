@@ -7,6 +7,10 @@ import lox.ast as ast
 from lox.lexer import TokenType
 
 
+class ParseError(Exception):
+    pass
+
+
 class Parser:
     """
     This parser aligns identically with the natural manual parsing
@@ -26,6 +30,12 @@ class Parser:
     def __init__(self, tokens: list["Token"]):
         self.tokens = tokens
         self.current = 0
+
+    def parse(self) -> "ast.Expression | None":
+        try:
+            return self.expression()
+        except ParseError:
+            return None
 
     def expression(self) -> "ast.Expression":
         return self.equality()
@@ -106,7 +116,7 @@ class Parser:
             self.consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")
             return ast.Grouping(expr)
 
-        return ast.Literal(None)  # never hit. make pylance shhhh
+        raise self.error(self.peek(), "Expected expression.")
 
     def match(self, token_types: list["TokenType"]) -> bool:
         for type in token_types:
@@ -137,5 +147,27 @@ class Parser:
     def previous(self) -> "Token":
         return self.tokens[self.current - 1]
 
-    def consume(self, expected: "TokenType", error_message: str):
-        pass
+    def consume(self, expected: "TokenType", message: str) -> "Token":
+        if self.check(expected):
+            return self.advance()
+
+        raise self.error(self.peek(), message)
+
+    def error(self, token: "Token", message: str) -> Exception:
+        from lox import Lox
+
+        if token.type == TokenType.EOF:
+            Lox.error(token.line, message, " at end")
+        else:
+            Lox.error(token.line, message, f" at {token.raw}")
+
+        raise ParseError()
+
+    def synchronise(self):
+        self.advance()
+
+        while not self.is_at_end():
+            if self.previous().type == TokenType.SEMICOLON:
+                return
+
+            self.advance()
