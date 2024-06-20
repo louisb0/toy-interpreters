@@ -7,7 +7,7 @@ from lox.visitors import Visitor
 
 
 class TreePrinter(Visitor):
-    def print(self, expr: "ast.Expression"):
+    def print(self, expr: "ast.Expression") -> str:
         return expr.accept(self)
 
     def visitUnaryExpression(self, expr: "ast.Unary") -> str:
