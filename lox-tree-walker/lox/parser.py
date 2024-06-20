@@ -85,7 +85,7 @@ class Parser:
 
         while self.match([TokenType.STAR, TokenType.SLASH]):
             operator = self.previous()
-            right = self.term()
+            right = self.factor()
 
             expr = ast.Binary(expr, operator, right)
 
