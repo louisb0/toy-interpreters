@@ -1,4 +1,6 @@
 from lox.lexer import Lexer, Token
+from lox.parser import Parser
+from lox.visitors import TreePrinter
 
 
 class Lox:
@@ -9,8 +11,13 @@ class Lox:
         lexer = Lexer(source)
         tokens: list[Token] = lexer.read_tokens()
 
-        for token in tokens:
-            print(token)
+        parser = Parser(tokens)
+        program = parser.parse()
+
+        if Lox.had_error:
+            return
+        
+        print(program.accept(TreePrinter()))
 
     @staticmethod
     def start_repl():
@@ -25,10 +32,6 @@ class Lox:
                 break
 
     @staticmethod
-    def error(line: int, message: str):
-        Lox._report(line, "", message)
-
-    @staticmethod
-    def _report(line: int, where: str, message: str):
-        print(f"[line {line}] Error {where}: {message}")
+    def error(line: int, message: str, where: str = ""):
+        print(f"[line {line}] Error{where}: {message}")
         Lox.had_error = True
