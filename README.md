@@ -21,3 +21,7 @@ So I don't forget, a list of potential features I'd like to consider for my own 
 * Destructuring
 * Optional chaining
 * Switch 
+* Lazy evaluation
+* Format strings
+* List comprehension
+* For-in loops
