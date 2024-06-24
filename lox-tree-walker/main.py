@@ -9,8 +9,10 @@ def main():
     elif len(sys.argv) == 2:
         with open(sys.argv[1], "r") as f:
             Lox.run_program(f.read())
-            if Lox.had_error:
+            if Lox.had_parse_error:
                 sys.exit(1)
+            elif Lox.had_runtime_error:
+                sys.exit(2)
     else:
         Lox.start_repl()
 

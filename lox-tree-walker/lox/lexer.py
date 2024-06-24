@@ -49,6 +49,7 @@ class TokenType(Enum):
     WHILE = auto()
 
     EOF = auto()
+    NONE = auto()
 
     @classmethod
     def from_keyword(cls, keyword):
@@ -162,8 +163,14 @@ class Lexer:
 
             case _:
                 from lox import Lox
+                from lox.parser import ParseError
 
-                Lox.error(self.line, "Unexpected character.")
+                # hack, needs cleanup
+                Lox.parse_error(
+                    ParseError(
+                        Token(TokenType.NONE, char, self.line), "Unexpected character."
+                    )
+                )
 
     def string(self):
         while self.peek() != '"' and not self.is_at_end():
@@ -174,8 +181,14 @@ class Lexer:
 
         if self.is_at_end():
             from lox import Lox
+            from lox.parser import ParseError
 
-            Lox.error(self.line, "Unclosed string literal.")
+            # hack, needs cleanup
+            Lox.parse_error(
+                ParseError(
+                    Token(TokenType.EOF, "", self.line), "Unclosed string literal."
+                )
+            )
             return
 
         # Closing '"'

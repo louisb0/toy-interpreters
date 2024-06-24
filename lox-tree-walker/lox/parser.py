@@ -8,7 +8,11 @@ from lox.lexer import TokenType
 
 
 class ParseError(Exception):
-    pass
+    def __init__(self, token: "Token", message: str):
+        super().__init__(message)
+
+        self.token = token
+        self.is_eof = token.type == TokenType.EOF
 
 
 class Parser:
@@ -34,7 +38,10 @@ class Parser:
     def parse(self) -> "ast.Expression | None":
         try:
             return self.expression()
-        except ParseError:
+        except ParseError as e:
+            from lox import Lox
+
+            Lox.parse_error(e)
             return None
 
     def expression(self) -> "ast.Expression":
@@ -74,7 +81,7 @@ class Parser:
 
         while self.match([TokenType.PLUS, TokenType.MINUS]):
             operator = self.previous()
-            right = self.term()
+            right = self.factor()
 
             expr = ast.Binary(expr, operator, right)
 
@@ -85,7 +92,7 @@ class Parser:
 
         while self.match([TokenType.STAR, TokenType.SLASH]):
             operator = self.previous()
-            right = self.factor()
+            right = self.unary()
 
             expr = ast.Binary(expr, operator, right)
 
@@ -116,7 +123,7 @@ class Parser:
             self.consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")
             return ast.Grouping(expr)
 
-        raise self.error(self.peek(), "Expected expression.")
+        raise ParseError(self.peek(), "Expected expression.")
 
     def match(self, token_types: list["TokenType"]) -> bool:
         for type in token_types:
@@ -151,17 +158,7 @@ class Parser:
         if self.check(expected):
             return self.advance()
 
-        raise self.error(self.peek(), message)
-
-    def error(self, token: "Token", message: str) -> Exception:
-        from lox import Lox
-
-        if token.type == TokenType.EOF:
-            Lox.error(token.line, message, " at end")
-        else:
-            Lox.error(token.line, message, f" at {token.raw}")
-
-        raise ParseError()
+        raise ParseError(self.peek(), message)
 
     def synchronise(self):
         self.advance()
