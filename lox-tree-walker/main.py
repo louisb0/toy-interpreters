@@ -11,6 +11,8 @@ def main():
             Lox.run_program(f.read())
             if Lox.had_error:
                 sys.exit(1)
+            elif Lox.had_runtime_error:
+                sys.exit(2)
     else:
         Lox.start_repl()
 
