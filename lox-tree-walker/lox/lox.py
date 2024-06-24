@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import lox.ast as ast
     from lox.lexer import Token
 
 from lox.lexer import Lexer
@@ -18,9 +19,9 @@ class Lox:
         tokens: list["Token"] = lexer.read_tokens()
 
         parser = Parser(tokens)
-        program = parser.parse()
+        program: list["ast.statements.Statement"] = parser.parse()
 
-        if Lox.had_parse_error or not program:
+        if Lox.had_parse_error:
             return
 
         Interpreter().interpret(program)

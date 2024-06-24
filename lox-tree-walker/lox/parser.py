@@ -35,30 +35,53 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
-    def parse(self) -> "ast.Expression | None":
+    def parse(self) -> list["ast.statements.Statement"]:
         try:
-            return self.expression()
+            stmts: list["ast.statements.Statement"] = []
+
+            while not self.is_at_end():
+                stmts.append(self.statement())
+
+            return stmts
         except ParseError as e:
             from lox import Lox
 
             Lox.parse_error(e)
-            return None
+            return []
 
-    def expression(self) -> "ast.Expression":
+    def expression(self) -> "ast.expressions.Expression":
         return self.equality()
 
-    def equality(self) -> "ast.Expression":
+    def statement(self) -> "ast.statements.Statement":
+        if self.match([TokenType.PRINT]):
+            return self.print_statement()
+
+        return self.expression_statement()
+
+    def print_statement(self) -> "ast.statements.Print":
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
+
+        return ast.statements.Print(expr)
+
+    def expression_statement(self) -> "ast.statements.Expression":
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after expression.")
+
+        return ast.statements.Expression(expr)
+
+    def equality(self) -> "ast.expressions.Expression":
         expr = self.comparison()
 
         while self.match([TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL]):
             operator = self.previous()
             right = self.equality()
 
-            expr = ast.Binary(expr, operator, right)
+            expr = ast.expressions.Binary(expr, operator, right)
 
         return expr
 
-    def comparison(self) -> "ast.Expression":
+    def comparison(self) -> "ast.expressions.Expression":
         expr = self.term()
 
         while self.match(
@@ -72,56 +95,56 @@ class Parser:
             operator = self.previous()
             right = self.comparison()
 
-            expr = ast.Binary(expr, operator, right)
+            expr = ast.expressions.Binary(expr, operator, right)
 
         return expr
 
-    def term(self) -> "ast.Expression":
+    def term(self) -> "ast.expressions.Expression":
         expr = self.factor()
 
         while self.match([TokenType.PLUS, TokenType.MINUS]):
             operator = self.previous()
             right = self.factor()
 
-            expr = ast.Binary(expr, operator, right)
+            expr = ast.expressions.Binary(expr, operator, right)
 
         return expr
 
-    def factor(self) -> "ast.Expression":
+    def factor(self) -> "ast.expressions.Expression":
         expr = self.unary()
 
         while self.match([TokenType.STAR, TokenType.SLASH]):
             operator = self.previous()
             right = self.unary()
 
-            expr = ast.Binary(expr, operator, right)
+            expr = ast.expressions.Binary(expr, operator, right)
 
         return expr
 
-    def unary(self) -> "ast.Expression":
+    def unary(self) -> "ast.expressions.Expression":
         if self.match([TokenType.BANG, TokenType.MINUS]):
             operator = self.previous()
             right = self.unary()
 
-            return ast.Unary(operator, right)
+            return ast.expressions.Unary(operator, right)
 
         return self.primary()
 
-    def primary(self) -> "ast.Expression":
+    def primary(self) -> "ast.expressions.Expression":
         if self.match([TokenType.TRUE]):
-            return ast.Literal(True)
+            return ast.expressions.Literal(True)
         elif self.match([TokenType.FALSE]):
-            return ast.Literal(False)
+            return ast.expressions.Literal(False)
         elif self.match([TokenType.NIL]):
-            return ast.Literal(None)
+            return ast.expressions.Literal(None)
 
         if self.match([TokenType.NUMBER, TokenType.STRING]):
-            return ast.Literal(self.previous().literal)
+            return ast.expressions.Literal(self.previous().literal)
 
         if self.match([TokenType.LEFT_PAREN]):
             expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")
-            return ast.Grouping(expr)
+            return ast.expressions.Grouping(expr)
 
         raise ParseError(self.peek(), "Expected expression.")
 
@@ -146,7 +169,7 @@ class Parser:
         return self.previous()
 
     def is_at_end(self) -> bool:
-        return self.peek() == TokenType.EOF
+        return self.peek().type == TokenType.EOF
 
     def peek(self) -> "Token":
         return self.tokens[self.current]

@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     import lox.ast as ast
     from lox.lexer import Token
 
-from lox.visitors import Visitor
+from lox.visitors import ExpressionVisitor, StatementVisitor
 from lox.lexer import TokenType
 
 
@@ -15,20 +15,31 @@ class RuntimeError(Exception):
         self.token = token
 
 
-class Interpreter(Visitor):
-    def interpret(self, expr: "ast.Expression") -> None:
+class Interpreter(ExpressionVisitor, StatementVisitor):
+    def interpret(self, statements: list["ast.statements.Statement"]) -> None:
         try:
-            print(self.stringify(self.evaluate(expr)))
+            for statement in statements:
+                self.execute(statement)
         except RuntimeError as e:
             from lox import Lox
 
             Lox.runtime_error(e)
             return None
 
-    def evaluate(self, expr: "ast.Expression"):
+    def evaluate(self, expr: "ast.expressions.Expression"):
         return expr.accept(self)
 
-    def visitUnaryExpression(self, expr: "ast.Unary"):
+    def execute(self, stmt: "ast.statements.Statement"):
+        return stmt.accept(self)
+
+    def visitExpressionStatement(self, stmt: "ast.statements.Expression") -> None:
+        self.evaluate(stmt.expr)
+
+    def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
+        value = self.evaluate(stmt.expr)
+        print(self.stringify(value))
+
+    def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
 
         match expr.operator.type:
@@ -40,13 +51,13 @@ class Interpreter(Visitor):
 
         raise Exception("Unreachable")
 
-    def visitLiteralExpression(self, expr: "ast.Literal"):
+    def visitLiteralExpression(self, expr: "ast.expressions.Literal"):
         return expr.value
 
-    def visitGroupingExpression(self, expr: "ast.Grouping"):
+    def visitGroupingExpression(self, expr: "ast.expressions.Grouping"):
         return self.evaluate(expr.expr)
 
-    def visitBinaryExpression(self, expr: "ast.Binary"):
+    def visitBinaryExpression(self, expr: "ast.expressions.Binary"):
         left = self.evaluate(expr.left)
         right = self.evaluate(expr.right)
 
