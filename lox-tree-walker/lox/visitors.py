@@ -22,6 +22,10 @@ class ExpressionVisitor(ABC):
     def visitBinaryExpression(self, expr: "ast.expressions.Binary"):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visitVariableExpression(self, expr: "ast.expressions.Variable"):
+        raise NotImplementedError()
+
 
 class StatementVisitor(ABC):
     @abstractmethod
@@ -30,6 +34,10 @@ class StatementVisitor(ABC):
 
     @abstractmethod
     def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def visitVarStatement(self, stmt: "ast.statements.Var") -> None:
         raise NotImplementedError()
 
 

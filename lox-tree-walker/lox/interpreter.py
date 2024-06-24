@@ -16,6 +16,9 @@ class RuntimeError(Exception):
 
 
 class Interpreter(ExpressionVisitor, StatementVisitor):
+    def __init__(self):
+        self.env = Environment()
+
     def interpret(self, statements: list["ast.statements.Statement"]) -> None:
         try:
             for statement in statements:
@@ -39,6 +42,13 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         value = self.evaluate(stmt.expr)
         print(self.stringify(value))
 
+    def visitVarStatement(self, stmt: "ast.statements.Var") -> None:
+        value = None
+        if stmt.initialiser:
+            value = self.evaluate(stmt.initialiser)
+
+        self.env.define(stmt.name.raw, value)
+
     def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
 
@@ -50,6 +60,9 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
                 return not self.is_truthy(right)
 
         raise Exception("Unreachable")
+
+    def visitVariableExpression(self, expr: "ast.expressions.Variable"):
+        return self.env.get(expr.name)
 
     def visitLiteralExpression(self, expr: "ast.expressions.Literal"):
         return expr.value
@@ -138,3 +151,17 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
             return "true" if value else "false"
 
         return str(value)
+
+
+class Environment:
+    def __init__(self):
+        self.values = {}
+
+    def define(self, name: str, value) -> None:
+        self.values[name] = value
+
+    def get(self, token: "Token"):
+        if token.raw in self.values:
+            return self.values[token.raw]
+
+        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")

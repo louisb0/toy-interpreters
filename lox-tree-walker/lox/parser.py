@@ -40,7 +40,9 @@ class Parser:
             stmts: list["ast.statements.Statement"] = []
 
             while not self.is_at_end():
-                stmts.append(self.statement())
+                declaration = self.declaration()
+                if declaration:
+                    stmts.append(declaration)
 
             return stmts
         except ParseError as e:
@@ -49,8 +51,25 @@ class Parser:
             Lox.parse_error(e)
             return []
 
-    def expression(self) -> "ast.expressions.Expression":
-        return self.equality()
+    def declaration(self) -> "ast.statements.Statement | None":
+        try:
+            if self.match([TokenType.VAR]):
+                return self.variable_declaration()
+
+            return self.statement()
+        except ParseError:
+            self.synchronise()
+            return None
+
+    def variable_declaration(self) -> "ast.statements.Var":
+        name: Token = self.consume(TokenType.IDENTIFIER, "Expected variable name.")
+
+        initialiser = None
+        if self.match([TokenType.EQUAL]):
+            initialiser = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expected assignment to end with ';'.")
+        return ast.statements.Var(name, initialiser)
 
     def statement(self) -> "ast.statements.Statement":
         if self.match([TokenType.PRINT]):
@@ -69,6 +88,9 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expected ';' after expression.")
 
         return ast.statements.Expression(expr)
+
+    def expression(self) -> "ast.expressions.Expression":
+        return self.equality()
 
     def equality(self) -> "ast.expressions.Expression":
         expr = self.comparison()
@@ -140,6 +162,9 @@ class Parser:
 
         if self.match([TokenType.NUMBER, TokenType.STRING]):
             return ast.expressions.Literal(self.previous().literal)
+
+        if self.match([TokenType.IDENTIFIER]):
+            return ast.expressions.Variable(self.previous())
 
         if self.match([TokenType.LEFT_PAREN]):
             expr = self.expression()
