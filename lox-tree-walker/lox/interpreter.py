@@ -35,8 +35,24 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def execute(self, stmt: "ast.statements.Statement"):
         return stmt.accept(self)
 
+    def execute_block(
+        self, statements: list["ast.statements.Statement"], env: "Environment"
+    ):
+        previous = self.env
+
+        try:
+            self.env = env
+
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.env = previous
+
     def visitExpressionStatement(self, stmt: "ast.statements.Expression") -> None:
         self.evaluate(stmt.expr)
+
+    def visitBlockStatement(self, stmt: "ast.statements.Block") -> None:
+        self.execute_block(stmt.statements, Environment(self.env))
 
     def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
         value = self.evaluate(stmt.expr)
@@ -159,7 +175,9 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
 
 class Environment:
-    def __init__(self):
+    def __init__(self, enclosing: "Environment | None" = None):
+        self.enclosing = enclosing
+
         self.values = {}
 
     def define(self, name: str, value) -> None:
@@ -170,10 +188,17 @@ class Environment:
             self.values[token.raw] = value
             return
 
+        if self.enclosing:
+            self.enclosing.assign(token, value)
+            return
+
         raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
 
     def get(self, token: "Token"):
         if token.raw in self.values:
             return self.values[token.raw]
+
+        if self.enclosing:
+            return self.enclosing.get(token)
 
         raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
