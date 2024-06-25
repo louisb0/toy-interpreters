@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     import lox.ast as ast
     from lox.lexer import Token
 
-from lox.visitors import Visitor
+from lox.visitors import ExpressionVisitor, StatementVisitor
 from lox.lexer import TokenType
 
 
@@ -15,20 +15,62 @@ class RuntimeError(Exception):
         self.token = token
 
 
-class Interpreter(Visitor):
-    def interpret(self, expr: "ast.Expression") -> None:
+class Interpreter(ExpressionVisitor, StatementVisitor):
+    def __init__(self):
+        self.env = Environment()
+
+    def interpret(self, statements: list["ast.statements.Statement"]) -> None:
         try:
-            print(self.stringify(self.evaluate(expr)))
+            for statement in statements:
+                self.execute(statement)
         except RuntimeError as e:
             from lox import Lox
 
             Lox.runtime_error(e)
             return None
 
-    def evaluate(self, expr: "ast.Expression"):
+    def evaluate(self, expr: "ast.expressions.Expression"):
         return expr.accept(self)
 
-    def visitUnaryExpression(self, expr: "ast.Unary"):
+    def execute(self, stmt: "ast.statements.Statement"):
+        return stmt.accept(self)
+
+    def execute_block(
+        self, statements: list["ast.statements.Statement"], env: "Environment"
+    ):
+        previous = self.env
+
+        try:
+            self.env = env
+
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.env = previous
+
+    def visitExpressionStatement(self, stmt: "ast.statements.Expression") -> None:
+        self.evaluate(stmt.expr)
+
+    def visitBlockStatement(self, stmt: "ast.statements.Block") -> None:
+        self.execute_block(stmt.statements, Environment(self.env))
+
+    def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
+        value = self.evaluate(stmt.expr)
+        print(self.stringify(value))
+
+    def visitVarStatement(self, stmt: "ast.statements.Var") -> None:
+        value = None
+        if stmt.initialiser:
+            value = self.evaluate(stmt.initialiser)
+
+        self.env.define(stmt.name.raw, value)
+
+    def visitAssignmentExpression(self, expr: "ast.expressions.Assignment"):
+        value = self.evaluate(expr.value)
+        self.env.assign(expr.name, value)
+        return value
+
+    def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
 
         match expr.operator.type:
@@ -40,13 +82,16 @@ class Interpreter(Visitor):
 
         raise Exception("Unreachable")
 
-    def visitLiteralExpression(self, expr: "ast.Literal"):
+    def visitVariableExpression(self, expr: "ast.expressions.Variable"):
+        return self.env.get(expr.name)
+
+    def visitLiteralExpression(self, expr: "ast.expressions.Literal"):
         return expr.value
 
-    def visitGroupingExpression(self, expr: "ast.Grouping"):
+    def visitGroupingExpression(self, expr: "ast.expressions.Grouping"):
         return self.evaluate(expr.expr)
 
-    def visitBinaryExpression(self, expr: "ast.Binary"):
+    def visitBinaryExpression(self, expr: "ast.expressions.Binary"):
         left = self.evaluate(expr.left)
         right = self.evaluate(expr.right)
 
@@ -127,3 +172,33 @@ class Interpreter(Visitor):
             return "true" if value else "false"
 
         return str(value)
+
+
+class Environment:
+    def __init__(self, enclosing: "Environment | None" = None):
+        self.enclosing = enclosing
+
+        self.values = {}
+
+    def define(self, name: str, value) -> None:
+        self.values[name] = value
+
+    def assign(self, token: "Token", value) -> None:
+        if token.raw in self.values:
+            self.values[token.raw] = value
+            return
+
+        if self.enclosing:
+            self.enclosing.assign(token, value)
+            return
+
+        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
+
+    def get(self, token: "Token"):
+        if token.raw in self.values:
+            return self.values[token.raw]
+
+        if self.enclosing:
+            return self.enclosing.get(token)
+
+        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
