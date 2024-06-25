@@ -13,6 +13,8 @@ class Lox:
     had_parse_error: bool = False
     had_runtime_error: bool = False
 
+    _interpreter = Interpreter()
+
     @staticmethod
     def run_program(source: str):
         lexer = Lexer(source)
@@ -24,7 +26,7 @@ class Lox:
         if Lox.had_parse_error:
             return
 
-        Interpreter().interpret(program)
+        Lox._interpreter.interpret(program)
 
     @staticmethod
     def start_repl():
