@@ -49,6 +49,11 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
         self.env.define(stmt.name.raw, value)
 
+    def visitAssignmentExpression(self, expr: "ast.expressions.Assignment"):
+        value = self.evaluate(expr.value)
+        self.env.assign(expr.name, value)
+        return value
+
     def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
 
@@ -159,6 +164,13 @@ class Environment:
 
     def define(self, name: str, value) -> None:
         self.values[name] = value
+
+    def assign(self, token: "Token", value) -> None:
+        if token.raw in self.values:
+            self.values[token.raw] = value
+            return
+
+        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
 
     def get(self, token: "Token"):
         if token.raw in self.values:

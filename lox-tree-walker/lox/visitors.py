@@ -26,6 +26,10 @@ class ExpressionVisitor(ABC):
     def visitVariableExpression(self, expr: "ast.expressions.Variable"):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visitAssignmentExpression(self, expr: "ast.expressions.Assignment"):
+        raise NotImplementedError()
+
 
 class StatementVisitor(ABC):
     @abstractmethod

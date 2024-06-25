@@ -36,20 +36,18 @@ class Parser:
         self.current = 0
 
     def parse(self) -> list["ast.statements.Statement"]:
-        try:
-            stmts: list["ast.statements.Statement"] = []
+        stmts: list["ast.statements.Statement"] = []
 
-            while not self.is_at_end():
-                declaration = self.declaration()
-                if declaration:
-                    stmts.append(declaration)
+        while not self.is_at_end():
+            declaration = self.declaration()
+            if declaration:
+                stmts.append(declaration)
 
-            return stmts
-        except ParseError as e:
-            from lox import Lox
+        return stmts
 
-            Lox.parse_error(e)
-            return []
+    """
+    Statements
+    """
 
     def declaration(self) -> "ast.statements.Statement | None":
         try:
@@ -89,8 +87,27 @@ class Parser:
 
         return ast.statements.Expression(expr)
 
+    """
+    Expressions
+    """
+
     def expression(self) -> "ast.expressions.Expression":
-        return self.equality()
+        return self.assignment()
+
+    def assignment(self) -> "ast.expressions.Expression":
+        expr = self.equality()
+
+        if self.match([TokenType.EQUAL]):
+            equals = self.previous()
+            value = self.assignment()
+
+            if isinstance(expr, ast.expressions.Variable):
+                name = expr.name
+                return ast.expressions.Assignment(name, value)
+
+            self.error(equals, "Invalid assignment target.")
+
+        return expr
 
     def equality(self) -> "ast.expressions.Expression":
         expr = self.comparison()
@@ -171,7 +188,7 @@ class Parser:
             self.consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")
             return ast.expressions.Grouping(expr)
 
-        raise ParseError(self.peek(), "Expected expression.")
+        raise self.error(self.peek(), "Expected expression.")
 
     def match(self, token_types: list["TokenType"]) -> bool:
         for type in token_types:
@@ -206,7 +223,15 @@ class Parser:
         if self.check(expected):
             return self.advance()
 
-        raise ParseError(self.peek(), message)
+        raise self.error(self.peek(), message)
+
+    def error(self, token: "Token", message: str) -> "ParseError":
+        from lox import Lox
+
+        error = ParseError(token, message)
+        Lox.parse_error(error)
+
+        return error
 
     def synchronise(self):
         self.advance()
