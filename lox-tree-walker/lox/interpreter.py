@@ -62,6 +62,10 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         elif stmt.else_branch:
             self.execute(stmt.else_branch)
 
+    def visitWhileStatement(self, stmt: "ast.statements.While") -> None:
+        while self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.body)
+
     def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
         value = self.evaluate(stmt.expr)
         print(self.stringify(value))

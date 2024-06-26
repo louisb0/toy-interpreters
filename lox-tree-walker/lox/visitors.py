@@ -56,6 +56,10 @@ class StatementVisitor(ABC):
     def visitIfStatement(self, stmt: "ast.statements.If") -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    def visitWhileStatement(self, stmt: "ast.statements.While") -> None:
+        raise NotImplementedError()
+
 
 class TreePrinter(ExpressionVisitor):
     def print(self, expr: "ast.expressions.Expression") -> str:

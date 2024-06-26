@@ -73,6 +73,9 @@ class Parser:
         if self.match([TokenType.IF]):
             return self.if_statement()
 
+        if self.match([TokenType.WHILE]):
+            return self.while_statement()
+
         if self.match([TokenType.PRINT]):
             return self.print_statement()
 
@@ -92,6 +95,15 @@ class Parser:
             else_branch = self.statement()
 
         return ast.statements.If(condition, then_branch, else_branch)
+
+    def while_statement(self) -> "ast.statements.While":
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after 'while'.")
+
+        body = self.statement()
+
+        return ast.statements.While(condition, body)
 
     def print_statement(self) -> "ast.statements.Print":
         expr = self.expression()
