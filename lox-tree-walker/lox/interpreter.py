@@ -216,7 +216,7 @@ class Environment:
             self.enclosing.assign(token, value)
             return
 
-        raise RuntimeError(token, f"Undefined variable 2 '{token.raw}'.")
+        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
 
     def get(self, token: "Token"):
         if token.raw in self.values:
@@ -225,4 +225,4 @@ class Environment:
         if self.enclosing:
             return self.enclosing.get(token)
 
-        raise RuntimeError(token, f"Undefined variable 1 '{token.raw}'.")
+        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
