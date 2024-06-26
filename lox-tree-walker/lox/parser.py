@@ -123,7 +123,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> "ast.expressions.Expression":
-        expr = self.equality()
+        expr = self.logic_or()
 
         if self.match([TokenType.EQUAL]):
             equals = self.previous()
@@ -134,6 +134,28 @@ class Parser:
                 return ast.expressions.Assignment(name, value)
 
             self.error(equals, "Invalid assignment target.")
+
+        return expr
+
+    def logic_or(self) -> "ast.expressions.Expression":
+        expr = self.logic_and()
+
+        while self.match([TokenType.OR]):
+            logic_or = self.previous()
+            right = self.logic_and()
+
+            expr = ast.expressions.Logical(expr, logic_or, right)
+
+        return expr
+
+    def logic_and(self) -> "ast.expressions.Expression":
+        expr = self.equality()
+
+        while self.match([TokenType.AND]):
+            logic_and = self.previous()
+            right = self.equality()
+
+            expr = ast.expressions.Logical(expr, logic_and, right)
 
         return expr
 

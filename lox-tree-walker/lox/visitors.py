@@ -30,6 +30,10 @@ class ExpressionVisitor(ABC):
     def visitAssignmentExpression(self, expr: "ast.expressions.Assignment"):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visitLogicalExpression(self, expr: "ast.expressions.Logical"):
+        raise NotImplementedError()
+
 
 class StatementVisitor(ABC):
     @abstractmethod
@@ -51,6 +55,7 @@ class StatementVisitor(ABC):
     @abstractmethod
     def visitIfStatement(self, stmt: "ast.statements.If") -> None:
         raise NotImplementedError()
+
 
 class TreePrinter(ExpressionVisitor):
     def print(self, expr: "ast.expressions.Expression") -> str:

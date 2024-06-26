@@ -78,6 +78,18 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         self.env.assign(expr.name, value)
         return value
 
+    def visitLogicalExpression(self, expr: "ast.expressions.Logical"):
+        left = self.evaluate(expr.left)
+
+        if expr.token.type == TokenType.OR:
+            if self.is_truthy(left):
+                return left
+        else:
+            if not self.is_truthy(left):
+                return left
+
+        return self.evaluate(expr.right)
+
     def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
 
