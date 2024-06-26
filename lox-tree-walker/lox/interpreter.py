@@ -54,6 +54,14 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def visitBlockStatement(self, stmt: "ast.statements.Block") -> None:
         self.execute_block(stmt.statements, Environment(self.env))
 
+    def visitIfStatement(self, stmt: "ast.statements.If") -> None:
+        condition = self.evaluate(stmt.condition)
+
+        if self.is_truthy(condition):
+            self.execute(stmt.then_branch)
+        elif stmt.else_branch:
+            self.execute(stmt.else_branch)
+
     def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
         value = self.evaluate(stmt.expr)
         print(self.stringify(value))

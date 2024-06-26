@@ -70,6 +70,9 @@ class Parser:
         return ast.statements.Var(name, initialiser)
 
     def statement(self) -> "ast.statements.Statement":
+        if self.match([TokenType.IF]):
+            return self.if_statement()
+
         if self.match([TokenType.PRINT]):
             return self.print_statement()
 
@@ -77,6 +80,18 @@ class Parser:
             return self.block()
 
         return self.expression_statement()
+
+    def if_statement(self) -> "ast.statements.If":
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after 'if'.")
+
+        then_branch = self.statement()
+        else_branch = None
+        if self.match([TokenType.ELSE]):
+            else_branch = self.statement()
+
+        return ast.statements.If(condition, then_branch, else_branch)
 
     def print_statement(self) -> "ast.statements.Print":
         expr = self.expression()
