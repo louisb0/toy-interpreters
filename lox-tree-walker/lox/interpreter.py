@@ -54,6 +54,18 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def visitBlockStatement(self, stmt: "ast.statements.Block") -> None:
         self.execute_block(stmt.statements, Environment(self.env))
 
+    def visitIfStatement(self, stmt: "ast.statements.If") -> None:
+        condition = self.evaluate(stmt.condition)
+
+        if self.is_truthy(condition):
+            self.execute(stmt.then_branch)
+        elif stmt.else_branch:
+            self.execute(stmt.else_branch)
+
+    def visitWhileStatement(self, stmt: "ast.statements.While") -> None:
+        while self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.body)
+
     def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
         value = self.evaluate(stmt.expr)
         print(self.stringify(value))
@@ -69,6 +81,18 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         value = self.evaluate(expr.value)
         self.env.assign(expr.name, value)
         return value
+
+    def visitLogicalExpression(self, expr: "ast.expressions.Logical"):
+        left = self.evaluate(expr.left)
+
+        if expr.token.type == TokenType.OR:
+            if self.is_truthy(left):
+                return left
+        else:
+            if not self.is_truthy(left):
+                return left
+
+        return self.evaluate(expr.right)
 
     def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)

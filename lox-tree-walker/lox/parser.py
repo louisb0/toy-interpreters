@@ -70,6 +70,15 @@ class Parser:
         return ast.statements.Var(name, initialiser)
 
     def statement(self) -> "ast.statements.Statement":
+        if self.match([TokenType.FOR]):
+            return self.for_statement()
+
+        if self.match([TokenType.IF]):
+            return self.if_statement()
+
+        if self.match([TokenType.WHILE]):
+            return self.while_statement()
+
         if self.match([TokenType.PRINT]):
             return self.print_statement()
 
@@ -77,6 +86,62 @@ class Parser:
             return self.block()
 
         return self.expression_statement()
+
+    def if_statement(self) -> "ast.statements.If":
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after 'if'.")
+
+        then_branch = self.statement()
+        else_branch = None
+        if self.match([TokenType.ELSE]):
+            else_branch = self.statement()
+
+        return ast.statements.If(condition, then_branch, else_branch)
+
+    def while_statement(self) -> "ast.statements.While":
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after 'while'.")
+
+        body = self.statement()
+
+        return ast.statements.While(condition, body)
+
+    def for_statement(self) -> "ast.statements.Block | ast.statements.While":
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.")
+
+        initialiser = None
+        if self.match([TokenType.SEMICOLON]):
+            initialiser = None
+        elif self.match([TokenType.VAR]):
+            initialiser = self.variable_declaration()
+        else:
+            initialiser = self.expression_statement()
+
+        condition = None
+        if not self.check(TokenType.SEMICOLON):
+            condition = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after loop condition.")
+
+        increment = None
+        if not self.check(TokenType.RIGHT_PAREN):
+            increment = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after loop condition.")
+
+        body = self.statement()
+
+        if increment:
+            body = ast.statements.Block([body, ast.statements.Expression(increment)])
+
+        if condition is None:
+            condition = ast.expressions.Literal(True)
+        body = ast.statements.While(condition, body)
+
+        if initialiser:
+            body = ast.statements.Block([initialiser, body])
+
+        return body
 
     def print_statement(self) -> "ast.statements.Print":
         expr = self.expression()
@@ -108,7 +173,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> "ast.expressions.Expression":
-        expr = self.equality()
+        expr = self.logic_or()
 
         if self.match([TokenType.EQUAL]):
             equals = self.previous()
@@ -119,6 +184,28 @@ class Parser:
                 return ast.expressions.Assignment(name, value)
 
             self.error(equals, "Invalid assignment target.")
+
+        return expr
+
+    def logic_or(self) -> "ast.expressions.Expression":
+        expr = self.logic_and()
+
+        while self.match([TokenType.OR]):
+            logic_or = self.previous()
+            right = self.logic_and()
+
+            expr = ast.expressions.Logical(expr, logic_or, right)
+
+        return expr
+
+    def logic_and(self) -> "ast.expressions.Expression":
+        expr = self.equality()
+
+        while self.match([TokenType.AND]):
+            logic_and = self.previous()
+            right = self.equality()
+
+            expr = ast.expressions.Logical(expr, logic_and, right)
 
         return expr
 
