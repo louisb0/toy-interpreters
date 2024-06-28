@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 
 from lox.visitors import ExpressionVisitor, StatementVisitor
 from lox.lexer import TokenType
+from lox.callable import Callable
 
 
 class RuntimeError(Exception):
@@ -159,6 +160,25 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
                 return float(left) >= float(right)
 
         raise Exception("Unreachable")
+
+    def visitCallExpression(self, expr: "ast.expressions.Call"):
+        callee = self.evaluate(expr.callee)
+
+        arguments: list = []
+        for argument in expr.arguments:
+            arguments.append(self.evaluate(argument))
+
+        if not isinstance(callee, Callable):
+            raise RuntimeError(expr.paren, "Can only call functions and classes.")
+
+        function: Callable = callee
+        if function.arity() != len(arguments):
+            raise RuntimeError(
+                expr.paren,
+                f"Expected {function.arity()} arguments but received {len(arguments)}.",
+            )
+
+        return function.call(self, arguments)
 
     def is_truthy(self, value) -> bool:
         if value in [None, False, 0, ""]:

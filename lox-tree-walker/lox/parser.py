@@ -263,11 +263,35 @@ class Parser:
     def unary(self) -> "ast.expressions.Expression":
         if self.match([TokenType.BANG, TokenType.MINUS]):
             operator = self.previous()
-            right = self.unary()
+            right = self.call()
 
             return ast.expressions.Unary(operator, right)
 
-        return self.primary()
+        return self.call()
+
+    def call(self) -> "ast.expressions.Expression":
+        expr = self.primary()
+
+        while self.match([TokenType.LEFT_PAREN]):
+            expr = self.finish_call(expr)
+
+        return expr
+
+    def finish_call(
+        self, callee: "ast.expressions.Expression"
+    ) -> "ast.expressions.Call":
+        arguments: list["ast.expressions.Expression"] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match([TokenType.COMMA]):
+                if len(arguments) >= 255:
+                    self.error(self.peek(), "Can't have more than 255 arguments.")
+
+                arguments.append(self.expression())
+
+        token = self.consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments.")
+
+        return ast.expressions.Call(callee, token, arguments)
 
     def primary(self) -> "ast.expressions.Expression":
         if self.match([TokenType.TRUE]):
