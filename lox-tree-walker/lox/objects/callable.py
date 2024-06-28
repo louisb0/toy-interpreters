@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from lox.interpreter import Interpreter
@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 class Callable(ABC):
     @abstractmethod
-    def call(self, interpreter: "Interpreter", arguments: list):
+    def call(self, interpreter: "Interpreter", arguments: list) -> Any:
         pass
 
     @abstractmethod

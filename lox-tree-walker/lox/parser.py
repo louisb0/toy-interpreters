@@ -51,6 +51,9 @@ class Parser:
 
     def declaration(self) -> "ast.statements.Statement | None":
         try:
+            if self.match([TokenType.FUN]):
+                return self.function_declaration("function")
+
             if self.match([TokenType.VAR]):
                 return self.variable_declaration()
 
@@ -58,6 +61,32 @@ class Parser:
         except ParseError:
             self.synchronise()
             return None
+
+    def function_declaration(self, kind: str) -> "ast.statements.Function":
+        name = self.consume(TokenType.IDENTIFIER, f"Expected {kind} name.")
+        self.consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind} name.")
+
+        params: list["Token"] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            params.append(
+                self.consume(TokenType.IDENTIFIER, f"Expected {kind} parameter name.")
+            )
+            while self.match([TokenType.COMMA]):
+                if len(params) >= 255:
+                    self.error(self.peek(), "Can't have more than 255 parameters.")
+
+                params.append(
+                    self.consume(
+                        TokenType.IDENTIFIER, f"Expected {kind} parameter name."
+                    )
+                )
+
+        self.consume(TokenType.RIGHT_PAREN, f"Expected ')' after {kind} parameters.")
+        self.consume(TokenType.LEFT_BRACE, f"Expected '{{' before {kind} body.")
+
+        body = self.block()
+
+        return ast.statements.Function(name, params, body)
 
     def variable_declaration(self) -> "ast.statements.Var":
         name: Token = self.consume(TokenType.IDENTIFIER, "Expected variable name.")

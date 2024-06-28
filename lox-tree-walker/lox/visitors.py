@@ -64,6 +64,10 @@ class StatementVisitor(ABC):
     def visitWhileStatement(self, stmt: "ast.statements.While") -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    def visitFunctionStatement(self, stmt: "ast.statements.Function") -> None:
+        raise NotImplementedError()
+
 
 class TreePrinter(ExpressionVisitor):
     def print(self, expr: "ast.expressions.Expression") -> str:
