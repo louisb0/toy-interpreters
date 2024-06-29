@@ -31,6 +31,8 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * Tail call optimisation
 * Anonymous functions
 * Modules
+* No implicit redeclarations, e.g. `fn func(a) { var a = 10; }`
+* No implicit nil
 
 ### Resources
 
