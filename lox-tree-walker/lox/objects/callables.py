@@ -26,11 +26,12 @@ class Callable(ABC):
 
 
 class Function(Callable):
-    def __init__(self, declaration: "ast.statements.Function"):
+    def __init__(self, declaration: "ast.statements.Function", closure: "Environment"):
+        self.closure = closure
         self.declaration = declaration
 
     def call(self, interpreter: "Interpreter", arguments: list):
-        env = Environment(interpreter.globals)
+        env = Environment(self.closure)
         for i, param in enumerate(self.declaration.params):
             env.define(param.raw, arguments[i])
 

@@ -49,7 +49,7 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         self.evaluate(stmt.expr)
 
     def visitFunctionStatement(self, stmt: "ast.statements.Function") -> None:
-        function = Function(stmt)
+        function = Function(stmt, closure=self.env)
         self.env.define(stmt.name.raw, function)
 
     def visitBlockStatement(self, stmt: "ast.statements.Block") -> None:
