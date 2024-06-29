@@ -101,6 +101,9 @@ class Parser:
         if self.match([TokenType.WHILE]):
             return self.while_statement()
 
+        if self.match([TokenType.RETURN]):
+            return self.return_statement()
+
         if self.match([TokenType.PRINT]):
             return self.print_statement()
 
@@ -129,6 +132,16 @@ class Parser:
         body = self.statement()
 
         return ast.statements.While(condition, body)
+
+    def return_statement(self) -> "ast.statements.Return":
+        token = self.previous()
+
+        value = None
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expected ';' after 'return'.")
+        return ast.statements.Return(token, value)
 
     def for_statement(self) -> "ast.statements.Block | ast.statements.While":
         self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.")

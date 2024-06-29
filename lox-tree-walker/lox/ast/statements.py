@@ -81,7 +81,7 @@ class Function(Statement):
 
 
 class Return(Statement):
-    def __init__(self, token: "Token", value: "ast.expressions.Expression"):
+    def __init__(self, token: "Token", value: "ast.expressions.Expression | None"):
         self.token = token
         self.value = value
 

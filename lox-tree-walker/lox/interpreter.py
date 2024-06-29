@@ -7,7 +7,8 @@ if TYPE_CHECKING:
 from lox.visitors import ExpressionVisitor, StatementVisitor
 from lox.lexer import TokenType
 from lox.errors import RuntimeError
-from lox.objects import Callable, NativeClock, Function, Environment
+from lox.objects import Environment
+from lox.objects.callables import Callable, Function, NativeClock, Return
 
 
 class Interpreter(ExpressionVisitor, StatementVisitor):
@@ -69,6 +70,9 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
         value = self.evaluate(stmt.expr)
         print(self.stringify(value))
+
+    def visitReturnStatement(self, stmt: "ast.statements.Return") -> None:
+        raise Return(self.evaluate(stmt.value) if stmt.value else None)
 
     def visitVarStatement(self, stmt: "ast.statements.Var") -> None:
         value = None
