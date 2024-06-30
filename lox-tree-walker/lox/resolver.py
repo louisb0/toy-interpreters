@@ -49,7 +49,7 @@ class Resolver(ExpressionVisitor, StatementVisitor):
             self.declare(param)
             self.define(param)
 
-        self.resolve_statement(stmt.body)
+        self.resolve_statements(stmt.body.statements)
         self.end_scope()
 
         self.current_function = enclosing_function
