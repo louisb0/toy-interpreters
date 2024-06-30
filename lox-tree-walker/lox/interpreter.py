@@ -15,6 +15,7 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def __init__(self):
         self.globals = Environment()
         self.globals.define("clock", NativeClock())
+        self.locals: dict["ast.expressions.Expression", int] = {}
 
         self.env = self.globals
 
@@ -34,6 +35,17 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def execute(self, stmt: "ast.statements.Statement"):
         return stmt.accept(self)
 
+    def resolve(self, expr: "ast.expressions.Expression", depth: int):
+        self.locals[expr] = depth
+
+    def look_up_variable(self, name: "Token", expr: "ast.expressions.Expression"):
+        distance = self.locals.get(expr)
+
+        if distance is not None:
+            return self.env.get_at(distance, name.raw)
+        else:
+            return self.globals.get(name)
+
     def execute_block(self, block: "ast.statements.Block", env: "Environment"):
         previous = self.env
 
@@ -45,17 +57,17 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         finally:
             self.env = previous
 
-    def visitExpressionStatement(self, stmt: "ast.statements.Expression") -> None:
+    def visit_expression_statement(self, stmt: "ast.statements.Expression") -> None:
         self.evaluate(stmt.expr)
 
-    def visitFunctionStatement(self, stmt: "ast.statements.Function") -> None:
+    def visit_function_statement(self, stmt: "ast.statements.Function") -> None:
         function = Function(stmt, closure=self.env)
         self.env.define(stmt.name.raw, function)
 
-    def visitBlockStatement(self, stmt: "ast.statements.Block") -> None:
+    def visit_block_statement(self, stmt: "ast.statements.Block") -> None:
         self.execute_block(stmt, Environment(self.env))
 
-    def visitIfStatement(self, stmt: "ast.statements.If") -> None:
+    def visit_if_statement(self, stmt: "ast.statements.If") -> None:
         condition = self.evaluate(stmt.condition)
 
         if self.is_truthy(condition):
@@ -63,30 +75,36 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         elif stmt.else_branch:
             self.execute(stmt.else_branch)
 
-    def visitWhileStatement(self, stmt: "ast.statements.While") -> None:
+    def visit_while_statement(self, stmt: "ast.statements.While") -> None:
         while self.is_truthy(self.evaluate(stmt.condition)):
             self.execute(stmt.body)
 
-    def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
+    def visit_print_statement(self, stmt: "ast.statements.Print") -> None:
         value = self.evaluate(stmt.expr)
         print(self.stringify(value))
 
-    def visitReturnStatement(self, stmt: "ast.statements.Return") -> None:
+    def visit_return_statement(self, stmt: "ast.statements.Return") -> None:
         raise Return(self.evaluate(stmt.value) if stmt.value else None)
 
-    def visitVarStatement(self, stmt: "ast.statements.Var") -> None:
+    def visit_var_statement(self, stmt: "ast.statements.Var") -> None:
         value = None
         if stmt.initialiser:
             value = self.evaluate(stmt.initialiser)
 
         self.env.define(stmt.name.raw, value)
 
-    def visitAssignmentExpression(self, expr: "ast.expressions.Assignment"):
+    def visit_assignment_expression(self, expr: "ast.expressions.Assignment"):
         value = self.evaluate(expr.value)
-        self.env.assign(expr.name, value)
+
+        distance = self.locals.get(expr)
+        if distance is not None:
+            self.env.assign_at(distance, expr.name.raw, value)
+        else:
+            self.globals.assign(expr.name, value)
+
         return value
 
-    def visitLogicalExpression(self, expr: "ast.expressions.Logical"):
+    def visit_logical_expression(self, expr: "ast.expressions.Logical"):
         left = self.evaluate(expr.left)
 
         if expr.token.type == TokenType.OR:
@@ -98,7 +116,7 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
         return self.evaluate(expr.right)
 
-    def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
+    def visit_unary_expression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
 
         match expr.operator.type:
@@ -110,16 +128,16 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
         raise Exception("Unreachable")
 
-    def visitVariableExpression(self, expr: "ast.expressions.Variable"):
-        return self.env.get(expr.name)
+    def visit_variable_expression(self, expr: "ast.expressions.Variable"):
+        return self.look_up_variable(expr.name, expr)
 
-    def visitLiteralExpression(self, expr: "ast.expressions.Literal"):
+    def visit_literal_expression(self, expr: "ast.expressions.Literal"):
         return expr.value
 
-    def visitGroupingExpression(self, expr: "ast.expressions.Grouping"):
+    def visit_grouping_expression(self, expr: "ast.expressions.Grouping"):
         return self.evaluate(expr.expr)
 
-    def visitBinaryExpression(self, expr: "ast.expressions.Binary"):
+    def visit_binary_expression(self, expr: "ast.expressions.Binary"):
         left = self.evaluate(expr.left)
         right = self.evaluate(expr.right)
 
@@ -164,7 +182,7 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
         raise Exception("Unreachable")
 
-    def visitCallExpression(self, expr: "ast.expressions.Call"):
+    def visit_call_expression(self, expr: "ast.expressions.Call"):
         callee = self.evaluate(expr.callee)
 
         arguments: list = []

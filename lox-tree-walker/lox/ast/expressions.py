@@ -18,7 +18,7 @@ class Unary(Expression):
         self.right = right
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitUnaryExpression(self)
+        return visitor.visit_unary_expression(self)
 
 
 class Literal(Expression):
@@ -26,7 +26,7 @@ class Literal(Expression):
         self.value = value
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitLiteralExpression(self)
+        return visitor.visit_literal_expression(self)
 
 
 class Grouping(Expression):
@@ -34,7 +34,7 @@ class Grouping(Expression):
         self.expr = expr
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitGroupingExpression(self)
+        return visitor.visit_grouping_expression(self)
 
 
 class Binary(Expression):
@@ -44,7 +44,7 @@ class Binary(Expression):
         self.right = right
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitBinaryExpression(self)
+        return visitor.visit_binary_expression(self)
 
 
 class Variable(Expression):
@@ -52,7 +52,7 @@ class Variable(Expression):
         self.name = name
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitVariableExpression(self)
+        return visitor.visit_variable_expression(self)
 
 
 class Assignment(Expression):
@@ -61,7 +61,7 @@ class Assignment(Expression):
         self.value = value
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitAssignmentExpression(self)
+        return visitor.visit_assignment_expression(self)
 
 
 class Logical(Expression):
@@ -71,7 +71,7 @@ class Logical(Expression):
         self.right = right
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitLogicalExpression(self)
+        return visitor.visit_logical_expression(self)
 
 
 class Call(Expression):
@@ -83,4 +83,4 @@ class Call(Expression):
         self.arguments = arguments
 
     def accept(self, visitor: "ExpressionVisitor"):
-        return visitor.visitCallExpression(self)
+        return visitor.visit_call_expression(self)

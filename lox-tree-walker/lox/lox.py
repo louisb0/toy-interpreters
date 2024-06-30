@@ -5,8 +5,9 @@ if TYPE_CHECKING:
     from lox.lexer import Token
 
 from lox.lexer import Lexer
-from lox.parser import Parser 
-from lox.interpreter import Interpreter 
+from lox.parser import Parser
+from lox.interpreter import Interpreter
+from lox.resolver import Resolver
 from lox.errors import ParseError, RuntimeError
 
 
@@ -23,6 +24,12 @@ class Lox:
 
         parser = Parser(tokens)
         program: list["ast.statements.Statement"] = parser.parse()
+
+        if Lox.had_parse_error:
+            return
+
+        resolver = Resolver(Lox._interpreter)
+        resolver.resolve_statements(program)
 
         if Lox.had_parse_error:
             return

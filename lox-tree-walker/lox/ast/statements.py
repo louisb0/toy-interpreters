@@ -18,7 +18,7 @@ class Expression(Statement):
         self.expr = expr
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitExpressionStatement(self)
+        return visitor.visit_expression_statement(self)
 
 
 class Print(Statement):
@@ -26,7 +26,7 @@ class Print(Statement):
         self.expr = expr
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitPrintStatement(self)
+        return visitor.visit_print_statement(self)
 
 
 class Var(Statement):
@@ -35,7 +35,7 @@ class Var(Statement):
         self.initialiser = initialiser
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitVarStatement(self)
+        return visitor.visit_var_statement(self)
 
 
 class Block(Statement):
@@ -43,7 +43,7 @@ class Block(Statement):
         self.statements = statements
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitBlockStatement(self)
+        return visitor.visit_block_statement(self)
 
 
 class If(Statement):
@@ -58,7 +58,7 @@ class If(Statement):
         self.else_branch = else_branch
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitIfStatement(self)
+        return visitor.visit_if_statement(self)
 
 
 class While(Statement):
@@ -67,7 +67,7 @@ class While(Statement):
         self.body = body
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitWhileStatement(self)
+        return visitor.visit_while_statement(self)
 
 
 class Function(Statement):
@@ -77,7 +77,7 @@ class Function(Statement):
         self.body = body
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitFunctionStatement(self)
+        return visitor.visit_function_statement(self)
 
 
 class Return(Statement):
@@ -86,4 +86,4 @@ class Return(Statement):
         self.value = value
 
     def accept(self, visitor: "StatementVisitor"):
-        return visitor.visitReturnStatement(self)
+        return visitor.visit_return_statement(self)
