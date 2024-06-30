@@ -28,5 +28,3 @@ for (var i = 0; i < 20; i = i + 1) {
   print fib(i);
 }
 ```
-
-![image](./img/screenshot.png)
