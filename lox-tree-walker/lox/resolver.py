@@ -82,12 +82,12 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         scope = self.scopes[-1]
         scope[name.raw] = True
 
-    def visitBlockStatement(self, stmt: "ast.statements.Block"):
+    def visit_block_statement(self, stmt: "ast.statements.Block"):
         self.begin_scope()
         self.resolve_statements(stmt.statements)
         self.end_scope()
 
-    def visitVarStatement(self, stmt: "ast.statements.Var"):
+    def visit_var_statement(self, stmt: "ast.statements.Var"):
         self.declare(stmt.name)
 
         if stmt.initialiser:
@@ -95,7 +95,7 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         self.define(stmt.name)
 
-    def visitVariableExpression(self, expr: "ast.expressions.Variable"):
+    def visit_variable_expression(self, expr: "ast.expressions.Variable"):
         if len(self.scopes) > 0 and self.scopes[-1].get(expr.name.raw) == False:
             from lox import Lox
             from lox.errors import ParseError
@@ -108,11 +108,11 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         self.resolve_local(expr, expr.name)
 
-    def visitAssignmentExpression(self, expr: "ast.expressions.Assignment"):
+    def visit_assignment_expression(self, expr: "ast.expressions.Assignment"):
         self.resolve_expression(expr.value)
         self.resolve_local(expr, expr.name)
 
-    def visitFunctionStatement(self, stmt: "ast.statements.Function"):
+    def visit_function_statement(self, stmt: "ast.statements.Function"):
         self.declare(stmt.name)
         self.define(stmt.name)
 
@@ -120,24 +120,24 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     """ Unaffected by variable resolution below, but needed for traversal """
 
-    def visitExpressionStatement(self, stmt: "ast.statements.Expression") -> None:
+    def visit_expression_statement(self, stmt: "ast.statements.Expression") -> None:
         self.resolve_expression(stmt.expr)
 
-    def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
+    def visit_print_statement(self, stmt: "ast.statements.Print") -> None:
         self.resolve_expression(stmt.expr)
 
-    def visitIfStatement(self, stmt: "ast.statements.If") -> None:
+    def visit_if_statement(self, stmt: "ast.statements.If") -> None:
         self.resolve_expression(stmt.condition)
         self.resolve_statement(stmt.then_branch)
 
         if stmt.else_branch:
             self.resolve_statement(stmt.else_branch)
 
-    def visitWhileStatement(self, stmt: "ast.statements.While") -> None:
+    def visit_while_statement(self, stmt: "ast.statements.While") -> None:
         self.resolve_expression(stmt.condition)
         self.resolve_statement(stmt.body)
 
-    def visitReturnStatement(self, stmt: "ast.statements.Return") -> None:
+    def visit_return_statement(self, stmt: "ast.statements.Return") -> None:
         if self.current_function == FunctionType.NONE:
             from lox import Lox
             from lox.errors import ParseError
@@ -151,24 +151,24 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         if stmt.value:
             self.resolve_expression(stmt.value)
 
-    def visitUnaryExpression(self, expr: "ast.expressions.Unary"):
+    def visit_unary_expression(self, expr: "ast.expressions.Unary"):
         self.resolve_expression(expr.right)
 
-    def visitLiteralExpression(self, expr: "ast.expressions.Literal"):
+    def visit_literal_expression(self, expr: "ast.expressions.Literal"):
         return
 
-    def visitGroupingExpression(self, expr: "ast.expressions.Grouping"):
+    def visit_grouping_expression(self, expr: "ast.expressions.Grouping"):
         self.resolve_expression(expr.expr)
 
-    def visitBinaryExpression(self, expr: "ast.expressions.Binary"):
+    def visit_binary_expression(self, expr: "ast.expressions.Binary"):
         self.resolve_expression(expr.left)
         self.resolve_expression(expr.right)
 
-    def visitLogicalExpression(self, expr: "ast.expressions.Logical"):
+    def visit_logical_expression(self, expr: "ast.expressions.Logical"):
         self.resolve_expression(expr.left)
         self.resolve_expression(expr.right)
 
-    def visitCallExpression(self, expr: "ast.expressions.Call"):
+    def visit_call_expression(self, expr: "ast.expressions.Call"):
         self.resolve_expression(expr.callee)
 
         for arg in expr.arguments:
