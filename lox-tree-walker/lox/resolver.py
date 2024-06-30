@@ -53,6 +53,14 @@ class Resolver(ExpressionVisitor, StatementVisitor):
             return
 
         scope = self.scopes[-1]
+        if name.raw in scope:
+            from lox import Lox
+            from lox.errors import ParseError
+
+            Lox.parse_error(
+                ParseError(name, "Already a variable with this name in this scope.")
+            )
+
         scope[name.raw] = False
 
     def define(self, name: "Token"):
