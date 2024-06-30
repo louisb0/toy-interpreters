@@ -33,6 +33,11 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * Modules
 * No implicit redeclarations, e.g. `fn func(a) { var a = 10; }`
 * No implicit nil
+* Constant folding
+* Dead code elimination
+* Control flow analysis
+* Flat ASTs
+* Tracebacks
 
 ### Resources
 
