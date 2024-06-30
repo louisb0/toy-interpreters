@@ -6,18 +6,17 @@ if TYPE_CHECKING:
 
 from lox.visitors import ExpressionVisitor, StatementVisitor
 from lox.lexer import TokenType
-
-
-class RuntimeError(Exception):
-    def __init__(self, token: "Token", message: str):
-        super().__init__(message)
-
-        self.token = token
+from lox.errors import RuntimeError
+from lox.objects import Environment
+from lox.objects.callables import Callable, Function, NativeClock, Return
 
 
 class Interpreter(ExpressionVisitor, StatementVisitor):
     def __init__(self):
-        self.env = Environment()
+        self.globals = Environment()
+        self.globals.define("clock", NativeClock())
+
+        self.env = self.globals
 
     def interpret(self, statements: list["ast.statements.Statement"]) -> None:
         try:
@@ -35,15 +34,13 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def execute(self, stmt: "ast.statements.Statement"):
         return stmt.accept(self)
 
-    def execute_block(
-        self, statements: list["ast.statements.Statement"], env: "Environment"
-    ):
+    def execute_block(self, block: "ast.statements.Block", env: "Environment"):
         previous = self.env
 
         try:
             self.env = env
 
-            for statement in statements:
+            for statement in block.statements:
                 self.execute(statement)
         finally:
             self.env = previous
@@ -51,8 +48,12 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def visitExpressionStatement(self, stmt: "ast.statements.Expression") -> None:
         self.evaluate(stmt.expr)
 
+    def visitFunctionStatement(self, stmt: "ast.statements.Function") -> None:
+        function = Function(stmt, closure=self.env)
+        self.env.define(stmt.name.raw, function)
+
     def visitBlockStatement(self, stmt: "ast.statements.Block") -> None:
-        self.execute_block(stmt.statements, Environment(self.env))
+        self.execute_block(stmt, Environment(self.env))
 
     def visitIfStatement(self, stmt: "ast.statements.If") -> None:
         condition = self.evaluate(stmt.condition)
@@ -69,6 +70,9 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def visitPrintStatement(self, stmt: "ast.statements.Print") -> None:
         value = self.evaluate(stmt.expr)
         print(self.stringify(value))
+
+    def visitReturnStatement(self, stmt: "ast.statements.Return") -> None:
+        raise Return(self.evaluate(stmt.value) if stmt.value else None)
 
     def visitVarStatement(self, stmt: "ast.statements.Var") -> None:
         value = None
@@ -160,6 +164,25 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
         raise Exception("Unreachable")
 
+    def visitCallExpression(self, expr: "ast.expressions.Call"):
+        callee = self.evaluate(expr.callee)
+
+        arguments: list = []
+        for argument in expr.arguments:
+            arguments.append(self.evaluate(argument))
+
+        if not isinstance(callee, Callable):
+            raise RuntimeError(expr.paren, "Can only call functions and classes.")
+
+        function: Callable = callee
+        if function.arity() != len(arguments):
+            raise RuntimeError(
+                expr.paren,
+                f"Expected {function.arity()} arguments but received {len(arguments)}.",
+            )
+
+        return function.call(self, arguments)
+
     def is_truthy(self, value) -> bool:
         if value in [None, False, 0, ""]:
             return False
@@ -196,33 +219,3 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
             return "true" if value else "false"
 
         return str(value)
-
-
-class Environment:
-    def __init__(self, enclosing: "Environment | None" = None):
-        self.enclosing = enclosing
-
-        self.values = {}
-
-    def define(self, name: str, value) -> None:
-        self.values[name] = value
-
-    def assign(self, token: "Token", value) -> None:
-        if token.raw in self.values:
-            self.values[token.raw] = value
-            return
-
-        if self.enclosing:
-            self.enclosing.assign(token, value)
-            return
-
-        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
-
-    def get(self, token: "Token"):
-        if token.raw in self.values:
-            return self.values[token.raw]
-
-        if self.enclosing:
-            return self.enclosing.get(token)
-
-        raise RuntimeError(token, f"Undefined variable '{token.raw}'.")

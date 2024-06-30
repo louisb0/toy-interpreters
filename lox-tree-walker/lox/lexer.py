@@ -163,7 +163,7 @@ class Lexer:
 
             case _:
                 from lox import Lox
-                from lox.parser import ParseError
+                from lox.errors import ParseError
 
                 # hack, needs cleanup
                 Lox.parse_error(
@@ -181,7 +181,7 @@ class Lexer:
 
         if self.is_at_end():
             from lox import Lox
-            from lox.parser import ParseError
+            from lox.errors import ParseError
 
             # hack, needs cleanup
             Lox.parse_error(

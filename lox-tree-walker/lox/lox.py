@@ -5,8 +5,9 @@ if TYPE_CHECKING:
     from lox.lexer import Token
 
 from lox.lexer import Lexer
-from lox.parser import Parser, ParseError
-from lox.interpreter import Interpreter, RuntimeError
+from lox.parser import Parser 
+from lox.interpreter import Interpreter 
+from lox.errors import ParseError, RuntimeError
 
 
 class Lox:

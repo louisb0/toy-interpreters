@@ -34,6 +34,10 @@ class ExpressionVisitor(ABC):
     def visitLogicalExpression(self, expr: "ast.expressions.Logical"):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visitCallExpression(self, expr: "ast.expressions.Call"):
+        raise NotImplementedError()
+
 
 class StatementVisitor(ABC):
     @abstractmethod
@@ -58,6 +62,14 @@ class StatementVisitor(ABC):
 
     @abstractmethod
     def visitWhileStatement(self, stmt: "ast.statements.While") -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def visitFunctionStatement(self, stmt: "ast.statements.Function") -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def visitReturnStatement(self, stmt: "ast.statements.Return") -> None:
         raise NotImplementedError()
 
 

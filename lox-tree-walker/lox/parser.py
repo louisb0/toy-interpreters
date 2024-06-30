@@ -5,14 +5,7 @@ if TYPE_CHECKING:
 
 import lox.ast as ast
 from lox.lexer import TokenType
-
-
-class ParseError(Exception):
-    def __init__(self, token: "Token", message: str):
-        super().__init__(message)
-
-        self.token = token
-        self.is_eof = token.type == TokenType.EOF
+from lox.errors import ParseError
 
 
 class Parser:
@@ -51,6 +44,9 @@ class Parser:
 
     def declaration(self) -> "ast.statements.Statement | None":
         try:
+            if self.match([TokenType.FUN]):
+                return self.function_declaration("function")
+
             if self.match([TokenType.VAR]):
                 return self.variable_declaration()
 
@@ -58,6 +54,32 @@ class Parser:
         except ParseError:
             self.synchronise()
             return None
+
+    def function_declaration(self, kind: str) -> "ast.statements.Function":
+        name = self.consume(TokenType.IDENTIFIER, f"Expected {kind} name.")
+        self.consume(TokenType.LEFT_PAREN, f"Expected '(' after {kind} name.")
+
+        params: list["Token"] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            params.append(
+                self.consume(TokenType.IDENTIFIER, f"Expected {kind} parameter name.")
+            )
+            while self.match([TokenType.COMMA]):
+                if len(params) >= 255:
+                    self.error(self.peek(), "Can't have more than 255 parameters.")
+
+                params.append(
+                    self.consume(
+                        TokenType.IDENTIFIER, f"Expected {kind} parameter name."
+                    )
+                )
+
+        self.consume(TokenType.RIGHT_PAREN, f"Expected ')' after {kind} parameters.")
+        self.consume(TokenType.LEFT_BRACE, f"Expected '{{' before {kind} body.")
+
+        body = self.block()
+
+        return ast.statements.Function(name, params, body)
 
     def variable_declaration(self) -> "ast.statements.Var":
         name: Token = self.consume(TokenType.IDENTIFIER, "Expected variable name.")
@@ -78,6 +100,9 @@ class Parser:
 
         if self.match([TokenType.WHILE]):
             return self.while_statement()
+
+        if self.match([TokenType.RETURN]):
+            return self.return_statement()
 
         if self.match([TokenType.PRINT]):
             return self.print_statement()
@@ -107,6 +132,16 @@ class Parser:
         body = self.statement()
 
         return ast.statements.While(condition, body)
+
+    def return_statement(self) -> "ast.statements.Return":
+        token = self.previous()
+
+        value = None
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expected ';' after 'return'.")
+        return ast.statements.Return(token, value)
 
     def for_statement(self) -> "ast.statements.Block | ast.statements.While":
         self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.")
@@ -263,11 +298,35 @@ class Parser:
     def unary(self) -> "ast.expressions.Expression":
         if self.match([TokenType.BANG, TokenType.MINUS]):
             operator = self.previous()
-            right = self.unary()
+            right = self.call()
 
             return ast.expressions.Unary(operator, right)
 
-        return self.primary()
+        return self.call()
+
+    def call(self) -> "ast.expressions.Expression":
+        expr = self.primary()
+
+        while self.match([TokenType.LEFT_PAREN]):
+            expr = self.finish_call(expr)
+
+        return expr
+
+    def finish_call(
+        self, callee: "ast.expressions.Expression"
+    ) -> "ast.expressions.Call":
+        arguments: list["ast.expressions.Expression"] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match([TokenType.COMMA]):
+                if len(arguments) >= 255:
+                    self.error(self.peek(), "Can't have more than 255 arguments.")
+
+                arguments.append(self.expression())
+
+        token = self.consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments.")
+
+        return ast.expressions.Call(callee, token, arguments)
 
     def primary(self) -> "ast.expressions.Expression":
         if self.match([TokenType.TRUE]):
