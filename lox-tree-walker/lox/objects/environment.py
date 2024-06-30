@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from lox.lexer import Token
@@ -26,6 +26,9 @@ class Environment:
 
         raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
 
+    def assign_at(self, distance: int, name: str, value):
+        self._ancestor(distance).values[name] = value
+
     def get(self, token: "Token"):
         if token.raw in self.values:
             return self.values[token.raw]
@@ -34,3 +37,14 @@ class Environment:
             return self.enclosing.get(token)
 
         raise RuntimeError(token, f"Undefined variable '{token.raw}'.")
+
+    def get_at(self, distance: int, name: str):
+        return self._ancestor(distance).values[name]
+
+    def _ancestor(self, distance: int) -> "Environment":
+        ancestor = self
+
+        for _ in range(distance):
+            ancestor = cast(Environment, ancestor.enclosing)
+
+        return ancestor

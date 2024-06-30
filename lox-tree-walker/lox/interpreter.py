@@ -15,6 +15,7 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def __init__(self):
         self.globals = Environment()
         self.globals.define("clock", NativeClock())
+        self.locals: dict["ast.expressions.Expression", int] = {}
 
         self.env = self.globals
 
@@ -33,6 +34,17 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
     def execute(self, stmt: "ast.statements.Statement"):
         return stmt.accept(self)
+
+    def resolve(self, expr: "ast.expressions.Expression", depth: int):
+        self.locals[expr] = depth
+
+    def look_up_variable(self, name: "Token", expr: "ast.expressions.Expression"):
+        distance = self.locals.get(expr)
+
+        if distance is not None:
+            return self.env.get_at(distance, name.raw)
+        else:
+            return self.globals.get(name)
 
     def execute_block(self, block: "ast.statements.Block", env: "Environment"):
         previous = self.env
@@ -83,7 +95,13 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
     def visitAssignmentExpression(self, expr: "ast.expressions.Assignment"):
         value = self.evaluate(expr.value)
-        self.env.assign(expr.name, value)
+
+        distance = self.locals.get(expr)
+        if distance is not None:
+            self.env.assign_at(distance, expr.name.raw, value)
+        else:
+            self.globals.assign(expr.name, value)
+
         return value
 
     def visitLogicalExpression(self, expr: "ast.expressions.Logical"):
@@ -111,7 +129,7 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         raise Exception("Unreachable")
 
     def visitVariableExpression(self, expr: "ast.expressions.Variable"):
-        return self.env.get(expr.name)
+        return self.look_up_variable(expr.name, expr)
 
     def visitLiteralExpression(self, expr: "ast.expressions.Literal"):
         return expr.value
