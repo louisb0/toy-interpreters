@@ -1,4 +1,5 @@
 from collections import deque
+from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -9,12 +10,18 @@ import lox.ast as ast
 from lox.visitors import ExpressionVisitor, StatementVisitor
 
 
+class FunctionType(Enum):
+    NONE = auto()
+    FUNCTION = auto()
+
+
 class Resolver(ExpressionVisitor, StatementVisitor):
     def __init__(self, interpreter: "Interpreter"):
         self.interpreter = interpreter
 
         # stack of dict[str, bool]
         self.scopes = deque()
+        self.current_function = FunctionType.NONE
 
     def resolve_statements(self, statements: list["ast.statements.Statement"]):
         for statement in statements:
@@ -32,7 +39,10 @@ class Resolver(ExpressionVisitor, StatementVisitor):
                 self.interpreter.resolve(expr, len(self.scopes) - 1 - i)
                 return
 
-    def resolve_function(self, stmt: "ast.statements.Function"):
+    def resolve_function(self, stmt: "ast.statements.Function", type: "FunctionType"):
+        enclosing_function = self.current_function
+        self.current_function = type
+
         self.begin_scope()
 
         for param in stmt.params:
@@ -41,6 +51,8 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         self.resolve_statement(stmt.body)
         self.end_scope()
+
+        self.current_function = enclosing_function
 
     def begin_scope(self):
         self.scopes.append({})
@@ -104,7 +116,7 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         self.declare(stmt.name)
         self.define(stmt.name)
 
-        self.resolve_function(stmt)
+        self.resolve_function(stmt, FunctionType.FUNCTION)
 
     """ Unaffected by variable resolution below, but needed for traversal """
 
@@ -126,6 +138,16 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         self.resolve_statement(stmt.body)
 
     def visitReturnStatement(self, stmt: "ast.statements.Return") -> None:
+        if self.current_function == FunctionType.NONE:
+            from lox import Lox
+            from lox.errors import ParseError
+
+            Lox.parse_error(
+                ParseError(
+                    stmt.token, "Can't return from top-level code."
+                )
+            )
+
         if stmt.value:
             self.resolve_expression(stmt.value)
 
