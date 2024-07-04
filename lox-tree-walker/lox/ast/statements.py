@@ -87,3 +87,12 @@ class Return(Statement):
 
     def accept(self, visitor: "StatementVisitor"):
         return visitor.visit_return_statement(self)
+
+
+class Class(Statement):
+    def __init__(self, name: "Token", methods: list["Function"]):
+        self.name = name
+        self.methods = methods
+
+    def accept(self, visitor: "StatementVisitor"):
+        return visitor.visit_class_statement(self)

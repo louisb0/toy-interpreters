@@ -72,6 +72,10 @@ class StatementVisitor(ABC):
     def visit_return_statement(self, stmt: "ast.statements.Return") -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_class_statement(self, stmt: "ast.statements.Class") -> None:
+        raise NotImplementedError()
+
 
 class TreePrinter(ExpressionVisitor):
     def print(self, expr: "ast.expressions.Expression") -> str:

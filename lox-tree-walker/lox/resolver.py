@@ -118,6 +118,10 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         self.resolve_function(stmt, FunctionType.FUNCTION)
 
+    def visit_class_statement(self, stmt: "ast.statements.Class"):
+        self.declare(stmt.name)
+        self.define(stmt.name)
+
     """ Unaffected by variable resolution below, but needed for traversal """
 
     def visit_expression_statement(self, stmt: "ast.statements.Expression") -> None:
@@ -142,11 +146,7 @@ class Resolver(ExpressionVisitor, StatementVisitor):
             from lox import Lox
             from lox.errors import ParseError
 
-            Lox.parse_error(
-                ParseError(
-                    stmt.token, "Can't return from top-level code."
-                )
-            )
+            Lox.parse_error(ParseError(stmt.token, "Can't return from top-level code."))
 
         if stmt.value:
             self.resolve_expression(stmt.value)

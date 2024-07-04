@@ -44,6 +44,9 @@ class Parser:
 
     def declaration(self) -> "ast.statements.Statement | None":
         try:
+            if self.match([TokenType.CLASS]):
+                return self.class_declaration()
+
             if self.match([TokenType.FUN]):
                 return self.function_declaration("function")
 
@@ -54,6 +57,18 @@ class Parser:
         except ParseError:
             self.synchronise()
             return None
+
+    def class_declaration(self) -> "ast.statements.Class":
+        name = self.consume(TokenType.IDENTIFIER, "Expected class name.")
+        self.consume(TokenType.LEFT_BRACE, "Expected '{' before class body.")
+
+        methods: list["ast.statements.Function"] = []
+        while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
+            methods.append(self.function_declaration("method"))
+
+        self.consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.")
+
+        return ast.statements.Class(name, methods)
 
     def function_declaration(self, kind: str) -> "ast.statements.Function":
         name = self.consume(TokenType.IDENTIFIER, f"Expected {kind} name.")
