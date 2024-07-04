@@ -62,8 +62,8 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
     def visit_class_statement(self, stmt: "ast.statements.Class") -> None:
         self.env.define(stmt.name.raw, None)
-        class_obj = Class(stmt.name.raw)
-        self.env.assign(stmt.name, class_obj)
+        klass = Class(stmt.name.raw)
+        self.env.assign(stmt.name, klass)
 
     def visit_function_statement(self, stmt: "ast.statements.Function") -> None:
         function = Function(stmt, closure=self.env)
