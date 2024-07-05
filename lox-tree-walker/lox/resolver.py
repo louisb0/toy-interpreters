@@ -13,6 +13,7 @@ from lox.visitors import ExpressionVisitor, StatementVisitor
 class FunctionType(Enum):
     NONE = auto()
     FUNCTION = auto()
+    METHOD = auto()
 
 
 class Resolver(ExpressionVisitor, StatementVisitor):
@@ -120,6 +121,10 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     def visit_class_statement(self, stmt: "ast.statements.Class"):
         self.declare(stmt.name)
+
+        for method in stmt.methods:
+            self.resolve_function(method, FunctionType.METHOD)
+
         self.define(stmt.name)
 
     """ Unaffected by variable resolution below, but needed for traversal """

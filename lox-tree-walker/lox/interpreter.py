@@ -62,7 +62,12 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
     def visit_class_statement(self, stmt: "ast.statements.Class") -> None:
         self.env.define(stmt.name.raw, None)
-        klass = Class(stmt.name.raw)
+
+        methods: dict[str, "Function"] = {}
+        for parsed_method in stmt.methods:
+            methods[parsed_method.name.raw] = Function(parsed_method, self.env)
+
+        klass = Class(stmt.name.raw, methods)
         self.env.assign(stmt.name, klass)
 
     def visit_function_statement(self, stmt: "ast.statements.Function") -> None:

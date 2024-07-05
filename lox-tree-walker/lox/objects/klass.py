@@ -4,13 +4,17 @@ if TYPE_CHECKING:
     from lox.interpreter import Interpreter
     from lox.lexer import Token
 
-from lox.objects.callables import Callable
+from lox.objects.callables import Callable, Function
 from lox.errors import RuntimeError
 
 
 class Class(Callable):
-    def __init__(self, name: str):
+    def __init__(self, name: str, methods: dict[str, "Function"]):
         self.name = name
+        self.methods = methods
+
+    def find_method(self, name: str):
+        return self.methods.get(name)
 
     def call(self, interpreter: "Interpreter", arguments: list) -> Any:
         return Instance(self)
@@ -30,6 +34,10 @@ class Instance:
     def get(self, name: "Token"):
         if name.raw in self.fields:
             return self.fields[name.raw]
+
+        method = self.klass.find_method(name.raw)
+        if method:
+            return method
 
         raise RuntimeError(name, f"Unknown property '{name.raw}'.")
 
