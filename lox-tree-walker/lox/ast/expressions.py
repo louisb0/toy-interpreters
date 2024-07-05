@@ -84,3 +84,22 @@ class Call(Expression):
 
     def accept(self, visitor: "ExpressionVisitor"):
         return visitor.visit_call_expression(self)
+
+
+class Get(Expression):
+    def __init__(self, object: "Expression", name: "Token"):
+        self.object = object
+        self.name = name
+
+    def accept(self, visitor: "ExpressionVisitor"):
+        return visitor.visit_get_expression(self)
+
+
+class Set(Expression):
+    def __init__(self, object: "Expression", name: "Token", value: "Expression"):
+        self.object = object
+        self.name = name
+        self.value = value
+
+    def accept(self, visitor: "ExpressionVisitor"):
+        return visitor.visit_set_expression(self)

@@ -173,3 +173,10 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         for arg in expr.arguments:
             self.resolve_expression(arg)
+
+    def visit_get_expression(self, expr: "ast.expressions.Get"):
+        self.resolve_expression(expr.object)
+
+    def visit_set_expression(self, expr: "ast.expressions.Set"):
+        self.resolve_expression(expr.object)
+        self.resolve_expression(expr.value)

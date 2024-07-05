@@ -38,6 +38,14 @@ class ExpressionVisitor(ABC):
     def visit_call_expression(self, expr: "ast.expressions.Call"):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_get_expression(self, expr: "ast.expressions.Get"):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def visit_set_expression(self, expr: "ast.expressions.Set"):
+        raise NotImplementedError()
+
 
 class StatementVisitor(ABC):
     @abstractmethod

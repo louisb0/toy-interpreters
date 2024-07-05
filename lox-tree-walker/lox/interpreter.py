@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 from lox.visitors import ExpressionVisitor, StatementVisitor
 from lox.lexer import TokenType
 from lox.errors import RuntimeError
-from lox.objects import Environment, Class
+from lox.objects import Environment, Class, Instance
 from lox.objects.callables import Callable, Function, NativeClock, Return
 
 
@@ -121,6 +121,16 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
         return self.evaluate(expr.right)
 
+    def visit_set_expression(self, expr: "ast.expressions.Set"):
+        object = self.evaluate(expr.object)
+
+        if not isinstance(object, Instance):
+            raise RuntimeError(expr.name, "Only instances have fields.")
+
+        value = self.evaluate(expr.value)
+        object.set(expr.name, value)
+        return value
+
     def visit_unary_expression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
 
@@ -205,6 +215,13 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
             )
 
         return function.call(self, arguments)
+
+    def visit_get_expression(self, expr: "ast.expressions.Get"):
+        object = self.evaluate(expr.object)
+        if isinstance(object, Instance):
+            return object.get(expr.name)
+
+        raise RuntimeError(expr.name, "Only instances have properties.")
 
     def is_truthy(self, value) -> bool:
         if value in [None, False, 0, ""]:

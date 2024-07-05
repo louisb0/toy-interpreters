@@ -1,2 +1,2 @@
 from .environment import Environment
-from .klass import Class
+from .klass import Instance, Class

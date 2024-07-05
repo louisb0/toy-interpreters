@@ -50,6 +50,7 @@ class Function(Callable):
 class NativeClock(Callable):
     def call(self, interpreter: "Interpreter", arguments: list):
         import time
+
         return time.time()
 
     def arity(self) -> int:

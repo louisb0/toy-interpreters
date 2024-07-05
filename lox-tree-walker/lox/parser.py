@@ -230,8 +230,9 @@ class Parser:
             value = self.assignment()
 
             if isinstance(expr, ast.expressions.Variable):
-                name = expr.name
-                return ast.expressions.Assignment(name, value)
+                return ast.expressions.Assignment(expr.name, value)
+            elif isinstance(expr, ast.expressions.Get):
+                return ast.expressions.Set(expr.object, expr.name, value)
 
             self.error(equals, "Invalid assignment target.")
 
@@ -322,8 +323,16 @@ class Parser:
     def call(self) -> "ast.expressions.Expression":
         expr = self.primary()
 
-        while self.match([TokenType.LEFT_PAREN]):
-            expr = self.finish_call(expr)
+        while True:
+            if self.match([TokenType.LEFT_PAREN]):
+                expr = self.finish_call(expr)
+            elif self.match([TokenType.DOT]):
+                name = self.consume(
+                    TokenType.IDENTIFIER, "Expected property name after '.'."
+                )
+                expr = ast.expressions.Get(expr, name)
+            else:
+                break
 
         return expr
 
