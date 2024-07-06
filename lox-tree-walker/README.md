@@ -3,6 +3,21 @@
 An implementation of a tree walking interpreter for the Lox language designed by Robert Nystrom in his book 'Crafting Interpreters'.
 
 ```
+class Thing {
+  getCallback() {
+    fun localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
+}
+
+var callback = Thing().getCallback();
+callback();
+```
+
+```
 fun makeCounter() {
   var i = 0;
   fun count() {

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 from lox.visitors import ExpressionVisitor, StatementVisitor
 from lox.lexer import TokenType
 from lox.errors import RuntimeError
-from lox.objects import Environment
+from lox.objects import Environment, Class, Instance
 from lox.objects.callables import Callable, Function, NativeClock, Return
 
 
@@ -60,8 +60,22 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
     def visit_expression_statement(self, stmt: "ast.statements.Expression") -> None:
         self.evaluate(stmt.expr)
 
+    def visit_class_statement(self, stmt: "ast.statements.Class") -> None:
+        self.env.define(stmt.name.raw, None)
+
+        methods: dict[str, "Function"] = {}
+        for method in stmt.methods:
+            methods[method.name.raw] = Function(
+                method,
+                closure=self.env,
+                is_initialiser=(method.name.raw == "init"),
+            )
+
+        klass = Class(stmt.name.raw, methods)
+        self.env.assign(stmt.name, klass)
+
     def visit_function_statement(self, stmt: "ast.statements.Function") -> None:
-        function = Function(stmt, closure=self.env)
+        function = Function(stmt, closure=self.env, is_initialiser=False)
         self.env.define(stmt.name.raw, function)
 
     def visit_block_statement(self, stmt: "ast.statements.Block") -> None:
@@ -115,6 +129,19 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
                 return left
 
         return self.evaluate(expr.right)
+
+    def visit_set_expression(self, expr: "ast.expressions.Set"):
+        object = self.evaluate(expr.object)
+
+        if not isinstance(object, Instance):
+            raise RuntimeError(expr.name, "Only instances have fields.")
+
+        value = self.evaluate(expr.value)
+        object.set(expr.name, value)
+        return value
+
+    def visit_this_expression(self, expr: "ast.expressions.This"):
+        return self.look_up_variable(expr.keyword, expr)
 
     def visit_unary_expression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
@@ -200,6 +227,13 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
             )
 
         return function.call(self, arguments)
+
+    def visit_get_expression(self, expr: "ast.expressions.Get"):
+        object = self.evaluate(expr.object)
+        if isinstance(object, Instance):
+            return object.get(expr.name)
+
+        raise RuntimeError(expr.name, "Only instances have properties.")
 
     def is_truthy(self, value) -> bool:
         if value in [None, False, 0, ""]:

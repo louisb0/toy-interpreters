@@ -52,3 +52,5 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * [https://tenthousandmeters.com/blog/python-behind-the-scenes-3-stepping-through-the-cpython-source-code/](https://tenthousandmeters.com/blog/python-behind-the-scenes-3-stepping-through-the-cpython-source-code/)
 * [https://futhark-lang.org/blog.html](https://futhark-lang.org/blog.html)
 * [https://existentialtype.wordpress.com/2011/04/16/modules-matter-most/](https://existentialtype.wordpress.com/2011/04/16/modules-matter-most/)
+* [https://blog.regehr.org/](https://blog.regehr.org/)
+* [http://richardartoul.github.io/jekyll/update/2015/04/26/hidden-classes.html](http://richardartoul.github.io/jekyll/update/2015/04/26/hidden-classes.html)
