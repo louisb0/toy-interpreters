@@ -22,7 +22,7 @@ class Class(Callable):
 
         if self.superclass:
             return self.superclass.find_method(name)
-        
+
         return None
 
     def call(self, interpreter: "Interpreter", arguments: list) -> Any:

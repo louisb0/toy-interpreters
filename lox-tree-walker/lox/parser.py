@@ -372,6 +372,15 @@ class Parser:
         if self.match([TokenType.THIS]):
             return ast.expressions.This(self.previous())
 
+        if self.match([TokenType.SUPER]):
+            keyword = self.previous()
+            self.consume(TokenType.DOT, "Expected '.' after 'super'.")
+            method = self.consume(
+                TokenType.IDENTIFIER, "Expected superclass method name."
+            )
+
+            return ast.expressions.Super(keyword, method)
+
         if self.match([TokenType.IDENTIFIER]):
             return ast.expressions.Variable(self.previous())
 
