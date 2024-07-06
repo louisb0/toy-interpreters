@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 import lox.ast as ast
 from lox.visitors import ExpressionVisitor, StatementVisitor
+from lox import Lox
+from lox.errors import ParseError
 
 
 class FunctionType(Enum):
@@ -75,9 +77,6 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         scope = self.scopes[-1]
         if name.raw in scope:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(name, "Already a variable with this name in this scope.")
             )
@@ -106,9 +105,6 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     def visit_variable_expression(self, expr: "ast.expressions.Variable"):
         if len(self.scopes) > 0 and self.scopes[-1].get(expr.name.raw) == False:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(
                     expr.name, "Can't read local variable in it's own initialiser."
@@ -135,9 +131,6 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         self.define(stmt.name)
 
         if stmt.superclass and stmt.superclass.name.raw == stmt.name.raw:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(stmt.superclass.name, "A class can't inherit from itself.")
             )
@@ -188,16 +181,10 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     def visit_return_statement(self, stmt: "ast.statements.Return") -> None:
         if self.current_function == FunctionType.NONE:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(ParseError(stmt.token, "Can't return from top-level code."))
 
         if stmt.value:
             if self.current_function == FunctionType.INITIALISER:
-                from lox import Lox
-                from lox.errors import ParseError
-
                 Lox.parse_error(
                     ParseError(stmt.token, "Can't return a value from an initialiser.")
                 )

@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 import lox.ast as ast
 from lox.lexer import TokenType
 from lox.errors import ParseError
+from lox import Lox
 
 
 class Parser:
@@ -427,8 +428,6 @@ class Parser:
         raise self.error(self.peek(), message)
 
     def error(self, token: "Token", message: str) -> "ParseError":
-        from lox import Lox
-
         error = ParseError(token, message)
         Lox.parse_error(error)
 
