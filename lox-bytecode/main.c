@@ -6,9 +6,9 @@ int main(int argc, char *argv[]) {
   init_chunk(&chunk);
 
   int constant = add_constant(&chunk, 3);
-  write_chunk(&chunk, OP_CONSTANT);
-  write_chunk(&chunk, constant);
-  write_chunk(&chunk, OP_RETURN);
+  write_chunk(&chunk, OP_CONSTANT, 12);
+  write_chunk(&chunk, constant, 12);
+  write_chunk(&chunk, OP_RETURN, 12);
 
   dissassemble_chunk(&chunk, "test");
   free_chunk(&chunk);
