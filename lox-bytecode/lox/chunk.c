@@ -2,6 +2,8 @@
 #include "memory.h"
 
 void init_chunk(Chunk *chunk) {
+  assert(chunk != NULL);
+
   chunk->capacity = 0;
   chunk->count = 0;
   chunk->code = NULL;
@@ -11,6 +13,8 @@ void init_chunk(Chunk *chunk) {
 }
 
 void free_chunk(Chunk *chunk) {
+  assert(chunk != NULL);
+
   FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
   free_value_array(&chunk->constants);
   free_line_info(&chunk->line_info);
@@ -19,6 +23,9 @@ void free_chunk(Chunk *chunk) {
 }
 
 void write_chunk(Chunk *chunk, uint8_t byte, int line) {
+  assert(chunk != NULL);
+  assert(line > 0);
+
   if (chunk->capacity < chunk->count + 1) {
     int old_capacity = chunk->capacity;
     chunk->capacity = GROW_CAPACITY(old_capacity);
@@ -32,11 +39,15 @@ void write_chunk(Chunk *chunk, uint8_t byte, int line) {
 }
 
 int add_constant(Chunk *chunk, Value value) {
+  assert(chunk != NULL);
+
   write_value_array(&chunk->constants, value);
   return chunk->constants.count - 1;
 }
 
 int get_line(Chunk *chunk, int offset) {
+  assert(chunk != NULL);
+
   int index = 0;
 
   while (index < chunk->line_info.count && offset >= 0) {

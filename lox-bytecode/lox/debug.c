@@ -7,6 +7,9 @@ static int constant_instruction(const char *name, Chunk *chunk, int offset);
 static int simple_instruction(const char *name, int offset);
 
 void dissassemble_chunk(Chunk *chunk, const char *name) {
+  assert(chunk != NULL);
+  assert(name != NULL);
+
   printf("=== %s ===\n", name);
 
   for (int offset = 0; offset < chunk->count;) {
@@ -15,6 +18,9 @@ void dissassemble_chunk(Chunk *chunk, const char *name) {
 }
 
 int dissassemble_instruction(Chunk *chunk, int offset) {
+  assert(chunk != NULL);
+  assert(offset >= 0);
+
   printf("%04d ", offset);
   if (offset > 0 && get_line(chunk, offset) == get_line(chunk, offset - 1)) {
     printf("   | ");
