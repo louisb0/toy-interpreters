@@ -103,3 +103,11 @@ class Set(Expression):
 
     def accept(self, visitor: "ExpressionVisitor"):
         return visitor.visit_set_expression(self)
+
+
+class This(Expression):
+    def __init__(self, keyword: "Token"):
+        self.keyword = keyword
+
+    def accept(self, visitor: "ExpressionVisitor"):
+        return visitor.visit_this_expression(self)

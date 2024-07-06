@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     import lox.ast as ast
     from lox.interpreter import Interpreter
+    from lox.objects import Instance
 
 from lox.objects import Environment
 
@@ -26,9 +27,21 @@ class Callable(ABC):
 
 
 class Function(Callable):
-    def __init__(self, declaration: "ast.statements.Function", closure: "Environment"):
+    def __init__(
+        self,
+        declaration: "ast.statements.Function",
+        closure: "Environment",
+        is_initialiser: bool,
+    ):
         self.closure = closure
         self.declaration = declaration
+        self.is_initialiser = is_initialiser
+
+    def bind(self, instance: "Instance") -> "Function":
+        env = Environment(self.closure)
+        env.define("this", instance)
+
+        return Function(self.declaration, env, self.is_initialiser)
 
     def call(self, interpreter: "Interpreter", arguments: list):
         env = Environment(self.closure)
@@ -38,7 +51,13 @@ class Function(Callable):
         try:
             interpreter.execute_block(self.declaration.body, env)
         except Return as e:
+            if self.is_initialiser:
+                return self.closure.get_at(0, "this")
+
             return e.value
+
+        if self.is_initialiser:
+            return self.closure.get_at(0, "this")
 
     def arity(self) -> int:
         return len(self.declaration.params)

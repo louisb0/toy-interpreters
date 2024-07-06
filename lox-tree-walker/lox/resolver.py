@@ -14,6 +14,12 @@ class FunctionType(Enum):
     NONE = auto()
     FUNCTION = auto()
     METHOD = auto()
+    INITIALISER = auto()
+
+
+class ClassType(Enum):
+    NONE = auto()
+    CLASS = auto()
 
 
 class Resolver(ExpressionVisitor, StatementVisitor):
@@ -23,6 +29,7 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         # stack of dict[str, bool]
         self.scopes = deque()
         self.current_function = FunctionType.NONE
+        self.current_class = ClassType.NONE
 
     def resolve_statements(self, statements: list["ast.statements.Statement"]):
         for statement in statements:
@@ -120,12 +127,38 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         self.resolve_function(stmt, FunctionType.FUNCTION)
 
     def visit_class_statement(self, stmt: "ast.statements.Class"):
+        enclosing_class = self.current_class
+        self.current_class = ClassType.CLASS
+
         self.declare(stmt.name)
+        self.define(stmt.name)
+
+        self.begin_scope()
+        self.scopes[-1]["this"] = True
 
         for method in stmt.methods:
-            self.resolve_function(method, FunctionType.METHOD)
+            declaration = FunctionType.METHOD
+            if method.name.raw == "init":
+                declaration = FunctionType.INITIALISER
 
-        self.define(stmt.name)
+            self.resolve_function(method, declaration)
+
+        self.end_scope()
+
+        self.current_class = enclosing_class
+
+    def visit_this_expression(self, expr: "ast.expressions.This"):
+        if self.current_class == ClassType.NONE:
+            from lox import Lox
+            from lox.errors import ParseError
+
+            Lox.parse_error(
+                ParseError(
+                    expr.keyword, "Can't reference 'this' from outside a class method."
+                )
+            )
+
+        self.resolve_local(expr, expr.keyword)
 
     """ Unaffected by variable resolution below, but needed for traversal """
 
@@ -154,6 +187,14 @@ class Resolver(ExpressionVisitor, StatementVisitor):
             Lox.parse_error(ParseError(stmt.token, "Can't return from top-level code."))
 
         if stmt.value:
+            if self.current_function == FunctionType.INITIALISER:
+                from lox import Lox
+                from lox.errors import ParseError
+
+                Lox.parse_error(
+                    ParseError(stmt.token, "Can't return a value from an initialiser.")
+                )
+
             self.resolve_expression(stmt.value)
 
     def visit_unary_expression(self, expr: "ast.expressions.Unary"):

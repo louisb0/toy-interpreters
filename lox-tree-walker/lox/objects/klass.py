@@ -13,14 +13,21 @@ class Class(Callable):
         self.name = name
         self.methods = methods
 
-    def find_method(self, name: str):
+    def find_method(self, name: str) -> "Function | None":
         return self.methods.get(name)
 
     def call(self, interpreter: "Interpreter", arguments: list) -> Any:
-        return Instance(self)
+        instance = Instance(self)
+
+        initialiser = self.find_method("init")
+        if initialiser:
+            initialiser.bind(instance).call(interpreter, arguments)
+
+        return instance
 
     def arity(self) -> int:
-        return 0
+        initialiser = self.find_method("init")
+        return initialiser.arity() if initialiser else 0
 
     def __str__(self) -> str:
         return self.name
@@ -37,7 +44,7 @@ class Instance:
 
         method = self.klass.find_method(name.raw)
         if method:
-            return method
+            return method.bind(self)
 
         raise RuntimeError(name, f"Unknown property '{name.raw}'.")
 

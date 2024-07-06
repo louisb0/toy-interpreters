@@ -363,6 +363,9 @@ class Parser:
         if self.match([TokenType.NUMBER, TokenType.STRING]):
             return ast.expressions.Literal(self.previous().literal)
 
+        if self.match([TokenType.THIS]):
+            return ast.expressions.This(self.previous())
+
         if self.match([TokenType.IDENTIFIER]):
             return ast.expressions.Variable(self.previous())
 

@@ -64,14 +64,18 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         self.env.define(stmt.name.raw, None)
 
         methods: dict[str, "Function"] = {}
-        for parsed_method in stmt.methods:
-            methods[parsed_method.name.raw] = Function(parsed_method, self.env)
+        for method in stmt.methods:
+            methods[method.name.raw] = Function(
+                method,
+                closure=self.env,
+                is_initialiser=(method.name.raw == "init"),
+            )
 
         klass = Class(stmt.name.raw, methods)
         self.env.assign(stmt.name, klass)
 
     def visit_function_statement(self, stmt: "ast.statements.Function") -> None:
-        function = Function(stmt, closure=self.env)
+        function = Function(stmt, closure=self.env, is_initialiser=False)
         self.env.define(stmt.name.raw, function)
 
     def visit_block_statement(self, stmt: "ast.statements.Block") -> None:
@@ -135,6 +139,9 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         value = self.evaluate(expr.value)
         object.set(expr.name, value)
         return value
+
+    def visit_this_expression(self, expr: "ast.expressions.This"):
+        return self.look_up_variable(expr.keyword, expr)
 
     def visit_unary_expression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)
