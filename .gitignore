@@ -1,3 +1,5 @@
 *.pdf
 *.pyc
 ast.png
+clox
+**/obj

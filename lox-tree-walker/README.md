@@ -1,4 +1,4 @@
-# monkey-tree-walker
+# lox-tree-walker
 
 An implementation of a tree walking interpreter for the Lox language designed by Robert Nystrom in his book 'Crafting Interpreters'.
 
