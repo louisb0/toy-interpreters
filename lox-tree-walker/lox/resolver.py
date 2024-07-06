@@ -223,9 +223,6 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     def visit_this_expression(self, expr: "ast.expressions.This"):
         if self.current_class == ClassType.NONE:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(
                     expr.keyword, "Can't reference 'this' from outside a class method."
@@ -236,18 +233,12 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     def visit_super_expression(self, expr: "ast.expressions.Super"):
         if self.current_class == ClassType.NONE:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(
                     expr.keyword, "Can't reference 'super' from outside a class method."
                 )
             )
         elif self.current_class != ClassType.SUBCLASS:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(
                     expr.keyword, "Can't reference 'super' without a superclass."
