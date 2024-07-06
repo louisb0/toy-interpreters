@@ -133,6 +133,17 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         self.declare(stmt.name)
         self.define(stmt.name)
 
+        if stmt.superclass and stmt.superclass.name.raw == stmt.name.raw:
+            from lox import Lox
+            from lox.errors import ParseError
+
+            Lox.parse_error(
+                ParseError(stmt.superclass.name, "A class can't inherit from itself.")
+            )
+
+        if stmt.superclass:
+            self.resolve_expression(stmt.superclass)
+
         self.begin_scope()
         self.scopes[-1]["this"] = True
 

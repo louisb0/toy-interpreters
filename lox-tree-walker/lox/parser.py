@@ -60,6 +60,12 @@ class Parser:
 
     def class_declaration(self) -> "ast.statements.Class":
         name = self.consume(TokenType.IDENTIFIER, "Expected class name.")
+
+        superclass: "ast.expressions.Variable | None" = None
+        if self.match([TokenType.LESS]):
+            self.consume(TokenType.IDENTIFIER, "Expected superclass name.")
+            superclass = ast.expressions.Variable(self.previous())
+
         self.consume(TokenType.LEFT_BRACE, "Expected '{' before class body.")
 
         methods: list["ast.statements.Function"] = []
@@ -68,7 +74,7 @@ class Parser:
 
         self.consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.")
 
-        return ast.statements.Class(name, methods)
+        return ast.statements.Class(name, superclass, methods)
 
     def function_declaration(self, kind: str) -> "ast.statements.Function":
         name = self.consume(TokenType.IDENTIFIER, f"Expected {kind} name.")

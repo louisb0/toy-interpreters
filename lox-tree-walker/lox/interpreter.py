@@ -61,6 +61,12 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         self.evaluate(stmt.expr)
 
     def visit_class_statement(self, stmt: "ast.statements.Class") -> None:
+        superclass = None
+        if stmt.superclass:
+            superclass = self.evaluate(stmt.superclass)
+            if not isinstance(superclass, Callable):
+                raise RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+
         self.env.define(stmt.name.raw, None)
 
         methods: dict[str, "Function"] = {}
@@ -71,7 +77,7 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
                 is_initialiser=(method.name.raw == "init"),
             )
 
-        klass = Class(stmt.name.raw, methods)
+        klass = Class(stmt.name.raw, superclass, methods)
         self.env.assign(stmt.name, klass)
 
     def visit_function_statement(self, stmt: "ast.statements.Function") -> None:
