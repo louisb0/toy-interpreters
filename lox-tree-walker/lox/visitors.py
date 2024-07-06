@@ -50,6 +50,10 @@ class ExpressionVisitor(ABC):
     def visit_this_expression(self, expr: "ast.expressions.This"):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_super_expression(self, expr: "ast.expressions.Super"):
+        raise NotImplementedError()
+
 
 class StatementVisitor(ABC):
     @abstractmethod

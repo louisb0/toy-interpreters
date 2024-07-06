@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     import lox.ast as ast
@@ -61,7 +61,17 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
         self.evaluate(stmt.expr)
 
     def visit_class_statement(self, stmt: "ast.statements.Class") -> None:
+        superclass = None
+        if stmt.superclass:
+            superclass = self.evaluate(stmt.superclass)
+            if not isinstance(superclass, Class):
+                raise RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+
         self.env.define(stmt.name.raw, None)
+
+        if stmt.superclass:
+            self.env = Environment(self.env)
+            self.env.define("super", superclass)
 
         methods: dict[str, "Function"] = {}
         for method in stmt.methods:
@@ -71,7 +81,11 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
                 is_initialiser=(method.name.raw == "init"),
             )
 
-        klass = Class(stmt.name.raw, methods)
+        klass = Class(stmt.name.raw, superclass, methods)
+
+        if stmt.superclass and self.env.enclosing:
+            self.env = self.env.enclosing
+
         self.env.assign(stmt.name, klass)
 
     def visit_function_statement(self, stmt: "ast.statements.Function") -> None:
@@ -142,6 +156,17 @@ class Interpreter(ExpressionVisitor, StatementVisitor):
 
     def visit_this_expression(self, expr: "ast.expressions.This"):
         return self.look_up_variable(expr.keyword, expr)
+
+    def visit_super_expression(self, expr: "ast.expressions.Super"):
+        distance = self.locals[expr]
+        superclass: "Class" = self.env.get_at(distance, "super")
+        object = self.env.get_at(distance - 1, "this")
+
+        method = cast(Function, superclass.find_method(expr.method.raw))
+        if not method:
+            raise RuntimeError(expr.method, f"Undefined property '{expr.method.raw}'.")
+
+        return method.bind(object)
 
     def visit_unary_expression(self, expr: "ast.expressions.Unary"):
         right = self.evaluate(expr.right)

@@ -9,12 +9,21 @@ from lox.errors import RuntimeError
 
 
 class Class(Callable):
-    def __init__(self, name: str, methods: dict[str, "Function"]):
+    def __init__(
+        self, name: str, superclass: "Class | None", methods: dict[str, "Function"]
+    ):
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
     def find_method(self, name: str) -> "Function | None":
-        return self.methods.get(name)
+        if name in self.methods:
+            return self.methods[name]
+
+        if self.superclass:
+            return self.superclass.find_method(name)
+
+        return None
 
     def call(self, interpreter: "Interpreter", arguments: list) -> Any:
         instance = Instance(self)

@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 import lox.ast as ast
 from lox.lexer import TokenType
 from lox.errors import ParseError
+from lox import Lox
 
 
 class Parser:
@@ -60,6 +61,12 @@ class Parser:
 
     def class_declaration(self) -> "ast.statements.Class":
         name = self.consume(TokenType.IDENTIFIER, "Expected class name.")
+
+        superclass: "ast.expressions.Variable | None" = None
+        if self.match([TokenType.LESS]):
+            self.consume(TokenType.IDENTIFIER, "Expected superclass name.")
+            superclass = ast.expressions.Variable(self.previous())
+
         self.consume(TokenType.LEFT_BRACE, "Expected '{' before class body.")
 
         methods: list["ast.statements.Function"] = []
@@ -68,7 +75,7 @@ class Parser:
 
         self.consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.")
 
-        return ast.statements.Class(name, methods)
+        return ast.statements.Class(name, superclass, methods)
 
     def function_declaration(self, kind: str) -> "ast.statements.Function":
         name = self.consume(TokenType.IDENTIFIER, f"Expected {kind} name.")
@@ -366,6 +373,15 @@ class Parser:
         if self.match([TokenType.THIS]):
             return ast.expressions.This(self.previous())
 
+        if self.match([TokenType.SUPER]):
+            keyword = self.previous()
+            self.consume(TokenType.DOT, "Expected '.' after 'super'.")
+            method = self.consume(
+                TokenType.IDENTIFIER, "Expected superclass method name."
+            )
+
+            return ast.expressions.Super(keyword, method)
+
         if self.match([TokenType.IDENTIFIER]):
             return ast.expressions.Variable(self.previous())
 
@@ -412,8 +428,6 @@ class Parser:
         raise self.error(self.peek(), message)
 
     def error(self, token: "Token", message: str) -> "ParseError":
-        from lox import Lox
-
         error = ParseError(token, message)
         Lox.parse_error(error)
 

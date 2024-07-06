@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 import lox.ast as ast
 from lox.visitors import ExpressionVisitor, StatementVisitor
+from lox import Lox
+from lox.errors import ParseError
 
 
 class FunctionType(Enum):
@@ -20,6 +22,7 @@ class FunctionType(Enum):
 class ClassType(Enum):
     NONE = auto()
     CLASS = auto()
+    SUBCLASS = auto()
 
 
 class Resolver(ExpressionVisitor, StatementVisitor):
@@ -74,9 +77,6 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         scope = self.scopes[-1]
         if name.raw in scope:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(name, "Already a variable with this name in this scope.")
             )
@@ -105,9 +105,6 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     def visit_variable_expression(self, expr: "ast.expressions.Variable"):
         if len(self.scopes) > 0 and self.scopes[-1].get(expr.name.raw) == False:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(
                 ParseError(
                     expr.name, "Can't read local variable in it's own initialiser."
@@ -133,6 +130,19 @@ class Resolver(ExpressionVisitor, StatementVisitor):
         self.declare(stmt.name)
         self.define(stmt.name)
 
+        if stmt.superclass and stmt.superclass.name.raw == stmt.name.raw:
+            Lox.parse_error(
+                ParseError(stmt.superclass.name, "A class can't inherit from itself.")
+            )
+
+        if stmt.superclass:
+            self.current_class = ClassType.SUBCLASS
+            self.resolve_expression(stmt.superclass)
+
+        if stmt.superclass:
+            self.begin_scope()
+            self.scopes[-1]["super"] = True
+
         self.begin_scope()
         self.scopes[-1]["this"] = True
 
@@ -145,20 +155,10 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
         self.end_scope()
 
+        if stmt.superclass:
+            self.end_scope()
+
         self.current_class = enclosing_class
-
-    def visit_this_expression(self, expr: "ast.expressions.This"):
-        if self.current_class == ClassType.NONE:
-            from lox import Lox
-            from lox.errors import ParseError
-
-            Lox.parse_error(
-                ParseError(
-                    expr.keyword, "Can't reference 'this' from outside a class method."
-                )
-            )
-
-        self.resolve_local(expr, expr.keyword)
 
     """ Unaffected by variable resolution below, but needed for traversal """
 
@@ -181,16 +181,10 @@ class Resolver(ExpressionVisitor, StatementVisitor):
 
     def visit_return_statement(self, stmt: "ast.statements.Return") -> None:
         if self.current_function == FunctionType.NONE:
-            from lox import Lox
-            from lox.errors import ParseError
-
             Lox.parse_error(ParseError(stmt.token, "Can't return from top-level code."))
 
         if stmt.value:
             if self.current_function == FunctionType.INITIALISER:
-                from lox import Lox
-                from lox.errors import ParseError
-
                 Lox.parse_error(
                     ParseError(stmt.token, "Can't return a value from an initialiser.")
                 )
@@ -226,3 +220,29 @@ class Resolver(ExpressionVisitor, StatementVisitor):
     def visit_set_expression(self, expr: "ast.expressions.Set"):
         self.resolve_expression(expr.object)
         self.resolve_expression(expr.value)
+
+    def visit_this_expression(self, expr: "ast.expressions.This"):
+        if self.current_class == ClassType.NONE:
+            Lox.parse_error(
+                ParseError(
+                    expr.keyword, "Can't reference 'this' from outside a class method."
+                )
+            )
+
+        self.resolve_local(expr, expr.keyword)
+
+    def visit_super_expression(self, expr: "ast.expressions.Super"):
+        if self.current_class == ClassType.NONE:
+            Lox.parse_error(
+                ParseError(
+                    expr.keyword, "Can't reference 'super' from outside a class method."
+                )
+            )
+        elif self.current_class != ClassType.SUBCLASS:
+            Lox.parse_error(
+                ParseError(
+                    expr.keyword, "Can't reference 'super' without a superclass."
+                )
+            )
+
+        self.resolve_local(expr, expr.keyword)
