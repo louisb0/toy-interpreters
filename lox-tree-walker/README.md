@@ -2,6 +2,8 @@
 
 An implementation of a tree walking interpreter for the Lox language designed by Robert Nystrom in his book 'Crafting Interpreters'.
 
+> The OOP stuff was implemented haphazardly. I was keen to get onto the bytecode interpreter.
+
 ```
 class Thing {
   getCallback() {
