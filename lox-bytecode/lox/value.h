@@ -12,8 +12,8 @@ typedef struct {
 } ValueArray;
 
 void init_value_array(ValueArray *value_array);
-void write_value_array(ValueArray *value_array, Value value);
 void free_value_array(ValueArray *value_array);
+void write_value_array(ValueArray *value_array, Value value);
 
 void print_value(Value value);
 

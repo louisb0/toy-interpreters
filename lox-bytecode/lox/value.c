@@ -9,6 +9,11 @@ void init_value_array(ValueArray *value_array) {
   value_array->values = NULL;
 }
 
+void free_value_array(ValueArray *value_array) {
+  FREE_ARRAY(Value, value_array->values, value_array->capacity);
+  init_value_array(value_array);
+}
+
 void write_value_array(ValueArray *value_array, Value value) {
   if (value_array->capacity < value_array->count + 1) {
     int old_capacity = value_array->capacity;
@@ -19,11 +24,6 @@ void write_value_array(ValueArray *value_array, Value value) {
 
   value_array->values[value_array->count] = value;
   value_array->count++;
-}
-
-void free_value_array(ValueArray *value_array) {
-  FREE_ARRAY(Value, value_array->values, value_array->capacity);
-  init_value_array(value_array);
 }
 
 void print_value(Value value) { printf("%g", value); }
