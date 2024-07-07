@@ -1,8 +1,6 @@
 #ifndef lox_value_h
 #define lox_value_h
 
-#include "common.h"
-
 typedef double Value;
 
 typedef struct {

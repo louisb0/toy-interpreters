@@ -1,7 +1,10 @@
 #include "lox/chunk.h"
 #include "lox/debug.h"
+#include "lox/vm.h"
 
 int main(int argc, char *argv[]) {
+  init_vm();
+
   Chunk chunk;
   init_chunk(&chunk);
 
@@ -25,6 +28,8 @@ int main(int argc, char *argv[]) {
   write_chunk(&chunk, constant, 14);
   write_chunk(&chunk, OP_RETURN, 14);
 
-  dissassemble_chunk(&chunk, "test");
+  // dissassemble_chunk(&chunk, "test");
+  interpret(&chunk);
+  free_vm();
   free_chunk(&chunk);
 }
