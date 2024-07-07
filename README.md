@@ -54,3 +54,6 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * [https://existentialtype.wordpress.com/2011/04/16/modules-matter-most/](https://existentialtype.wordpress.com/2011/04/16/modules-matter-most/)
 * [https://blog.regehr.org/](https://blog.regehr.org/)
 * [http://richardartoul.github.io/jekyll/update/2015/04/26/hidden-classes.html](http://richardartoul.github.io/jekyll/update/2015/04/26/hidden-classes.html)
+* [https://pointersgonewild.com/](https://pointersgonewild.com/)
+* [http://gameprogrammingpatterns.com/](http://gameprogrammingpatterns.com/)
+* [https://journal.stuffwithstuff.com/](https://journal.stuffwithstuff.com/)
