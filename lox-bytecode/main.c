@@ -8,27 +8,26 @@ int main(int argc, char *argv[]) {
   Chunk chunk;
   init_chunk(&chunk);
 
-  int constant = add_constant(&chunk, 3);
-  write_chunk(&chunk, OP_CONSTANT, 12);
-  write_chunk(&chunk, constant, 12);
-  write_chunk(&chunk, OP_RETURN, 12);
+  int constant = add_constant(&chunk, 1.2);
+  write_chunk(&chunk, OP_CONSTANT, 123);
+  write_chunk(&chunk, constant, 123);
 
-  constant = add_constant(&chunk, 4);
-  write_chunk(&chunk, OP_CONSTANT, 12);
-  write_chunk(&chunk, constant, 12);
-  write_chunk(&chunk, OP_RETURN, 12);
+  constant = add_constant(&chunk, 3.4);
+  write_chunk(&chunk, OP_CONSTANT, 123);
+  write_chunk(&chunk, constant, 123);
 
-  constant = add_constant(&chunk, 5);
-  write_chunk(&chunk, OP_CONSTANT, 13);
-  write_chunk(&chunk, constant, 13);
-  write_chunk(&chunk, OP_RETURN, 13);
+  write_chunk(&chunk, OP_ADD, 123);
 
-  constant = add_constant(&chunk, 5);
-  write_chunk(&chunk, OP_CONSTANT, 14);
-  write_chunk(&chunk, constant, 14);
-  write_chunk(&chunk, OP_RETURN, 14);
+  constant = add_constant(&chunk, 5.6);
+  write_chunk(&chunk, OP_CONSTANT, 123);
+  write_chunk(&chunk, constant, 123);
 
-  // dissassemble_chunk(&chunk, "test");
+  write_chunk(&chunk, OP_DIVIDE, 123);
+
+  write_chunk(&chunk, OP_NEGATE, 123);
+
+  write_chunk(&chunk, OP_RETURN, 123);
+
   interpret(&chunk);
   free_vm();
   free_chunk(&chunk);
