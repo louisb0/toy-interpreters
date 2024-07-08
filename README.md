@@ -57,3 +57,8 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * [https://pointersgonewild.com/](https://pointersgonewild.com/)
 * [http://gameprogrammingpatterns.com/](http://gameprogrammingpatterns.com/)
 * [https://journal.stuffwithstuff.com/](https://journal.stuffwithstuff.com/)
+* [https://blog.subnetzero.io/](https://blog.subnetzero.io/)
+* [https://en.m.wikibooks.org/wiki/Creating_a_Virtual_Machine/Register_VM_in_C](https://en.m.wikibooks.org/wiki/Creating_a_Virtual_Machine/Register_VM_in_C)
+* [https://connascence.io/](https://connascence.io/)
+* [https://www.pollylabs.org/education.html](https://www.pollylabs.org/education.html)
+* [https://www.cs.colostate.edu/~pouchet/index.html#lectures](https://www.cs.colostate.edu/~pouchet/index.html#lectures)
