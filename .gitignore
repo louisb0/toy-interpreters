@@ -3,3 +3,5 @@
 ast.png
 clox
 **/obj
+.cache
+compile_commands.json
