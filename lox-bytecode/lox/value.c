@@ -32,4 +32,4 @@ void write_value_array(ValueArray *value_array, Value value) {
   value_array->count++;
 }
 
-void print_value(Value value) { printf("%g", value); }
+void print_value(Value value) { printf("%g", AS_NUMBER(value)); }
