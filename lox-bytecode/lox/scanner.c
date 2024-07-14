@@ -13,7 +13,7 @@ Scanner scanner;
 void init_scanner(const char *source) {
   scanner.start = source;
   scanner.current = source;
-  scanner.line = 0;
+  scanner.line = 1;
 }
 
 static bool is_digit(char c) { return c >= '0' && c <= '9'; }
