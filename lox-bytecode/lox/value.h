@@ -40,4 +40,6 @@ void write_value_array(ValueArray *value_array, Value value);
 
 void print_value(Value value);
 
+bool values_equal(Value a, Value b);
+
 #endif
