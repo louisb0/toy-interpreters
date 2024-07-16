@@ -62,3 +62,7 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * [https://connascence.io/](https://connascence.io/)
 * [https://www.pollylabs.org/education.html](https://www.pollylabs.org/education.html)
 * [https://www.cs.colostate.edu/~pouchet/index.html#lectures](https://www.cs.colostate.edu/~pouchet/index.html#lectures)
+* **[http://compileroptimizations.com/](http://compileroptimizations.com/)**
+* [https://llvm.org/docs/Passes.html](https://llvm.org/docs/Passes.html)
+* [https://www.cs.cornell.edu/courses/cs6120/2020fa/self-guided/](https://www.cs.cornell.edu/courses/cs6120/2020fa/self-guided/)
+* [https://blog.trailofbits.com/category/compilers/page/2/](https://blog.trailofbits.com/category/compilers/page/2/)
