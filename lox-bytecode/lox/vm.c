@@ -28,9 +28,12 @@ static void runtime_error(const char *format, ...) {
   reset_stack();
 }
 
-void init_vm() { reset_stack(); }
+void init_vm() {
+  reset_stack();
+  vm.objects = NULL;
+}
 
-void free_vm() {}
+void free_vm() { free_objects(); }
 
 void push(Value value) {
   *vm.stack_top = value;
