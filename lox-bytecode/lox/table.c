@@ -1,6 +1,7 @@
-#include "table.h"
+#include <string.h>
+
 #include "memory.h"
-#include "object.h"
+#include "table.h"
 #include "value.h"
 
 #define TABLE_MAX_LOAD 0.75
@@ -114,5 +115,25 @@ void table_add_all(Table *from, Table *to) {
     if (entry->key != NULL) {
       table_set(to, entry->key, entry->value);
     }
+  }
+}
+
+ObjString *table_find_string(Table *table, const char *chars, int length,
+                             uint32_t hash) {
+  if (table->count == 0)
+    return NULL;
+
+  uint32_t index = hash % table->capacity;
+  for (;;) {
+    Entry *entry = &table->entries[index];
+    if (entry->key == NULL) {
+      if (IS_NIL(entry->value))
+        return NULL;
+    } else if (entry->key->length == length && entry->key->hash == hash &&
+               memcmp(entry->key->chars, chars, length) == 0) {
+      return entry->key;
+    }
+
+    index = (index + 1) % table->capacity;
   }
 }
