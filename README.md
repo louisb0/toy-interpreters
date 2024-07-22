@@ -66,3 +66,5 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * [https://llvm.org/docs/Passes.html](https://llvm.org/docs/Passes.html)
 * [https://www.cs.cornell.edu/courses/cs6120/2020fa/self-guided/](https://www.cs.cornell.edu/courses/cs6120/2020fa/self-guided/)
 * [https://blog.trailofbits.com/category/compilers/page/2/](https://blog.trailofbits.com/category/compilers/page/2/)
+* [https://blog.regehr.org/archives/2485](https://blog.regehr.org/archives/2485)
+* [https://www.youtube.com/watch?v=V8dnIw3amLA](https://www.youtube.com/watch?v=V8dnIw3amLA)
