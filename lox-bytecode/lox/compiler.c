@@ -290,6 +290,12 @@ ParseRule rules[] = {
 
 static void expression() { parse_precedence(PREC_ASSIGNMENT); }
 
+static void expression_statement() {
+  expression();
+  consume(TOKEN_SEMICOLON, "Expected ';' after expression.");
+  emit_byte(OP_POP);
+}
+
 static void print_statement() {
   expression();
   consume(TOKEN_SEMICOLON, "Expected ';' after value.");
@@ -301,6 +307,8 @@ static void declaration() { statement(); }
 static void statement() {
   if (match(TOKEN_PRINT)) {
     print_statement();
+  } else {
+    expression_statement();
   }
 }
 
