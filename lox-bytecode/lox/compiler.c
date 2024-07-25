@@ -146,8 +146,13 @@ static void end_compiler() {
 static void expression();
 static void statement();
 static void declaration();
+
+// ordering this file is hell.heres some forward declarations instead
 static ParseRule *get_rule(TokenType operator);
 static void parse_precedence(Precedence precedence);
+static uint8_t identifier_constant(Token *name);
+static uint8_t parse_variable(const char *error_message);
+static void define_variable(uint8_t global);
 
 static void binary() {
   TokenType operator= parser.previous.type;
@@ -245,6 +250,19 @@ static void string() {
       copy_string(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
+static void named_variable(Token name) {
+  uint8_t arg = identifier_constant(&name);
+
+  if (match(TOKEN_EQUAL)) {
+    expression();
+    emit_bytes(OP_SET_GLOBAL, arg);
+  } else {
+    emit_bytes(OP_GET_GLOBAL, arg);
+  }
+}
+
+static void variable() { named_variable(parser.previous); }
+
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, NULL, PREC_NONE},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
@@ -265,7 +283,7 @@ ParseRule rules[] = {
     [TOKEN_GREATER_EQUAL] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL] = {NULL, binary, PREC_COMPARISON},
-    [TOKEN_IDENTIFIER] = {NULL, NULL, PREC_NONE},
+    [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
     [TOKEN_STRING] = {string, NULL, PREC_NONE},
     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
     [TOKEN_AND] = {NULL, NULL, PREC_NONE},
@@ -290,6 +308,19 @@ ParseRule rules[] = {
 
 static void expression() { parse_precedence(PREC_ASSIGNMENT); }
 
+static void var_declaration() {
+  uint8_t global = parse_variable("Expected variable name.");
+
+  if (match(TOKEN_EQUAL)) {
+    expression();
+  } else {
+    emit_byte(OP_NIL);
+  }
+
+  consume(TOKEN_SEMICOLON, "Expected ';' after variable declaration.");
+  define_variable(global);
+}
+
 static void expression_statement() {
   expression();
   consume(TOKEN_SEMICOLON, "Expected ';' after expression.");
@@ -302,7 +333,41 @@ static void print_statement() {
   emit_byte(OP_PRINT);
 }
 
-static void declaration() { statement(); }
+static void synchronise() {
+  parser.panic_mode = false;
+
+  while (parser.current.type != TOKEN_EOF) {
+    if (parser.current.type == TOKEN_SEMICOLON)
+      return;
+
+    switch (parser.current.type) {
+    case TOKEN_CLASS:
+    case TOKEN_FUN:
+    case TOKEN_VAR:
+    case TOKEN_FOR:
+    case TOKEN_IF:
+    case TOKEN_WHILE:
+    case TOKEN_PRINT:
+    case TOKEN_RETURN:
+      return;
+
+    default:;
+    }
+
+    advance();
+  }
+}
+
+static void declaration() {
+  if (match(TOKEN_VAR)) {
+    var_declaration();
+  } else {
+    statement();
+  }
+
+  if (parser.panic_mode)
+    synchronise();
+}
 
 static void statement() {
   if (match(TOKEN_PRINT)) {
@@ -327,6 +392,19 @@ static void parse_precedence(Precedence precedence) {
     ParseFn infix_rule = get_rule(parser.previous.type)->infix;
     infix_rule();
   }
+}
+
+static uint8_t identifier_constant(Token *name) {
+  return make_constant(OBJ_VAL(copy_string(name->start, name->length)));
+}
+
+static uint8_t parse_variable(const char *error_message) {
+  consume(TOKEN_IDENTIFIER, error_message);
+  return identifier_constant(&parser.previous);
+}
+
+static void define_variable(uint8_t global) {
+  emit_bytes(OP_DEFINE_GLOBAL, global);
 }
 
 static ParseRule *get_rule(TokenType operator) {
