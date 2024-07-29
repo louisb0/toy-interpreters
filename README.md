@@ -5,41 +5,7 @@ An implementation of both tree walking and bytecode interpreters from the books 
 All the code is very messy and has never been refactored / cleaned up. The purpose of these projects is to get a basic understanding of interpreters and language design before creating my own hobby language.
 
 
-## Notes
-
-Stuff I thought about while working on this repo that I'd like to look back on when developing my own toy language.
-
-### Interesting Features 
-
-* Errors as values
-* Error productions & Python-esque string formatting
-* Ternary
-* Linux/Mac/Windows keywords, e.g. `fn linux function() {}`
-* Statically typed
-* Some concept of a standard library
-* `defer` and `comptime` keywords from Zig
-* Generics
-* Async
-* LSP/Formatter
-* Destructuring
-* Optional chaining
-* Switch 
-* Lazy evaluation
-* Format strings
-* List comprehension
-* For-in loops
-* Tail call optimisation
-* Anonymous functions
-* Modules
-* No implicit redeclarations, e.g. `fn func(a) { var a = 10; }`
-* No implicit nil
-* Constant folding
-* Dead code elimination
-* Control flow analysis
-* Flat ASTs
-* Tracebacks
-
-### Resources
+## Resources
 
 * [https://eli.thegreenplace.net/2019/go-compiler-internals-adding-a-new-statement-to-go-part-1/](https://eli.thegreenplace.net/2019/go-compiler-internals-adding-a-new-statement-to-go-part-1/)
 * [https://go.dev/ref/spec](https://go.dev/ref/spec)
@@ -68,9 +34,14 @@ Stuff I thought about while working on this repo that I'd like to look back on w
 * [https://blog.trailofbits.com/category/compilers/page/2/](https://blog.trailofbits.com/category/compilers/page/2/)
 * [https://blog.regehr.org/archives/2485](https://blog.regehr.org/archives/2485)
 * [https://www.youtube.com/watch?v=V8dnIw3amLA](https://www.youtube.com/watch?v=V8dnIw3amLA)
-* [https://compilers.cs.uni-saarland.de/papers/bbhlmz13cc.pdf](https://compilers.cs.uni-saarland.de/papers/bbhlmz13cc.pdf)
+* [SSA https://compilers.cs.uni-saarland.de/papers/bbhlmz13cc.pdf](https://compilers.cs.uni-saarland.de/papers/bbhlmz13cc.pdf)
 * [https://github.com/SeaOfNodes/Simple/tree/main](https://github.com/SeaOfNodes/Simple/tree/main)
 * [https://www.youtube.com/watch?v=9epgZ-e6DUU](https://www.youtube.com/watch?v=9epgZ-e6DUU)
 * [https://bernsteinbear.com/pl-resources/](https://bernsteinbear.com/pl-resources/)
 * [https://old.reddit.com/r/Compilers/comments/rvnesz/resources_for_learning_compiler_design/hr88qo0/](https://old.reddit.com/r/Compilers/comments/rvnesz/resources_for_learning_compiler_design/hr88qo0/)
 * [https://iliabylich.github.io/arena-based-parsers/tldr.html](https://iliabylich.github.io/arena-based-parsers/tldr.html)
+* [https://github.com/chrisseaton/rhizome/blob/main/doc/ir.md](https://github.com/chrisseaton/rhizome/blob/main/doc/ir.md)
+    * construction.md
+    * scheduler.md
+* [https://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html]
+* [https://eli.thegreenplace.net/2017/adventures-in-jit-compilation-part-2-an-x64-jit/](https://eli.thegreenplace.net/2017/adventures-in-jit-compilation-part-2-an-x64-jit/)
